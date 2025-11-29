@@ -1,0 +1,171 @@
+{% load crispy_forms_tags %}
+
+<form method="post" 
+      hx-post="{% url 'accounts:settings' %}?tab=config" 
+      hx-target="#settings-form-container" 
+      hx-swap="innerHTML"
+      hx-indicator="#loading-indicator">
+    {% csrf_token %}
+    <input type="hidden" name="form_type" value="config">
+    
+    <!-- Railway Credentials Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-transparent">
+            <h5 class="mb-0">Railway Credentials</h5>
+            <small class="text-muted">Configure your Railway.app API credentials</small>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label for="id_railway_template_id" class="form-label">
+                    Railway Template ID
+                </label>
+                <input 
+                    type="text" 
+                    name="railway_template_id" 
+                    id="id_railway_template_id" 
+                    class="form-control" 
+                    placeholder="Enter Railway Template ID"
+                    value="{% if form.railway_template_id.value %}{{ form.railway_template_id.value }}{% elif settings.railway_template_id %}{{ settings.railway_template_id }}{% endif %}">
+                {% if form.railway_template_id.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.railway_template_id.errors }}
+                    </div>
+                {% endif %}
+                {% if settings.railway_template_id %}
+                    <small class="form-text text-success d-block mt-1">
+                        ✓ Saved: {{ settings.railway_template_id }}
+                    </small>
+                {% else %}
+                    <small class="form-text text-muted">
+                        Your Railway template identifier
+                    </small>
+                {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                <label for="id_railway_workspace_id" class="form-label">
+                    Railway Workspace ID
+                </label>
+                <input 
+                    type="text" 
+                    name="railway_workspace_id" 
+                    id="id_railway_workspace_id" 
+                    class="form-control" 
+                    placeholder="Enter Railway Workspace ID"
+                    value="{% if form.railway_workspace_id.value %}{{ form.railway_workspace_id.value }}{% elif settings.railway_workspace_id %}{{ settings.railway_workspace_id }}{% endif %}">
+                {% if form.railway_workspace_id.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.railway_workspace_id.errors }}
+                    </div>
+                {% endif %}
+                {% if settings.railway_workspace_id %}
+                    <small class="form-text text-success d-block mt-1">
+                        ✓ Saved: {{ settings.railway_workspace_id }}
+                    </small>
+                {% else %}
+                    <small class="form-text text-muted">
+                        Your Railway workspace identifier
+                    </small>
+                {% endif %}
+            </div>
+            
+            <div class="mb-3">
+                <label for="id_railway_token" class="form-label">
+                    Railway API Token
+                </label>
+                <input 
+                    type="password" 
+                    name="railway_token" 
+                    id="id_railway_token" 
+                    class="form-control" 
+                    placeholder="Enter Railway API Token (leave blank to keep existing)"
+                    autocomplete="new-password"
+                    value="">
+                {% if form.railway_token.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.railway_token.errors }}
+                    </div>
+                {% endif %}
+                {% if settings.railway_token %}
+                    <small class="form-text text-success d-block mt-1">
+                        ✓ Token is saved (leave blank to keep existing token)
+                    </small>
+                {% else %}
+                    <small class="form-text text-muted">
+                        Your Railway API token (required for first-time setup)
+                    </small>
+                {% endif %}
+            </div>
+            
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <span class="spinner-border spinner-border-sm d-none" id="loading-indicator" role="status" aria-hidden="true"></span>
+                    Save Settings
+                </button>
+                <span class="text-muted small ms-3" id="save-status"></span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Help Section -->
+    <div class="card">
+        <div class="card-header bg-transparent">
+            <h6 class="mb-0">How to get your Railway credentials</h6>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <h6 class="small">Railway Template ID</h6>
+                <p class="small text-muted mb-0">
+                    The Template ID from your Railway template. You can find this in your Railway dashboard under Templates.
+                </p>
+            </div>
+            <div class="mb-3">
+                <h6 class="small">Railway Workspace ID</h6>
+                <p class="small text-muted mb-0">
+                    Your Railway Workspace ID. This can be found in your Railway workspace settings.
+                </p>
+            </div>
+            <div class="mb-0">
+                <h6 class="small">Railway API Token</h6>
+                <p class="small text-muted mb-0">
+                    Generate an API token from your Railway account settings. Go to Settings → Tokens to create a new token.
+                </p>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+    // Show loading indicator on form submit
+    document.body.addEventListener('htmx:beforeRequest', function(evt) {
+        if (evt.detail.target.id === 'settings-form-container') {
+            const indicator = document.getElementById('loading-indicator');
+            if (indicator) {
+                indicator.classList.remove('d-none');
+            }
+            const status = document.getElementById('save-status');
+            if (status) {
+                status.textContent = 'Saving...';
+            }
+        }
+    });
+    
+    // Hide loading indicator after response
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+        if (evt.detail.target.id === 'settings-form-container') {
+            const indicator = document.getElementById('loading-indicator');
+            if (indicator) {
+                indicator.classList.add('d-none');
+            }
+            const status = document.getElementById('save-status');
+            if (status) {
+                status.textContent = '✓ Saved successfully!';
+                status.classList.add('text-success');
+                setTimeout(() => {
+                    status.textContent = '';
+                    status.classList.remove('text-success');
+                }, 3000);
+            }
+        }
+    });
+</script>

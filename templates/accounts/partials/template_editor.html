@@ -1,0 +1,1100 @@
+{% load crispy_forms_tags %}
+
+<div id="template-editor-full" class="template-editor-full">
+    <!-- Architecture Tab Content (Grid Only) -->
+    <div id="architecture-tab" class="tab-content">
+        <!-- Services Canvas Container -->
+        <div class="services-canvas-wrapper">
+            <!-- Add Button (Top Right) -->
+            <div class="add-button-container">
+                <button 
+                    type="button" 
+                    class="btn btn-dark text-white"
+                    onclick="addServiceCard()">
+                    <i class="bi bi-plus-circle me-1"></i> ADD NEW
+                </button>
+            </div>
+            
+            <!-- Services Grid Canvas -->
+            <div id="services-canvas" class="services-canvas">
+                <!-- Service cards will be added here dynamically -->
+            </div>
+            
+            <!-- Empty State -->
+            <div id="empty-state" class="text-center py-5">
+                <i class="bi bi-box" style="font-size: 4rem; color: #dee2e6;"></i>
+                <p class="text-muted mt-3 mb-4">No services added yet</p>
+                <button 
+                    type="button" 
+                    class="btn btn-dark text-white"
+                    onclick="addServiceCard()">
+                    <i class="bi bi-plus-circle me-1"></i> ADD YOUR FIRST SERVICE
+                </button>
+            </div>
+        </div>
+        
+        <!-- Off-Canvas Panel for Service Details -->
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="service-offcanvas" aria-labelledby="service-offcanvas-label" data-bs-backdrop="true" data-bs-scroll="true">
+            <div class="offcanvas-header border-bottom">
+                <div class="d-flex align-items-center flex-grow-1">
+                    <i class="bi bi-box service-offcanvas-icon me-2" id="offcanvas-service-icon"></i>
+                    <div class="flex-grow-1">
+                        <input 
+                            type="text" 
+                            class="form-control form-control-sm d-inline-block w-auto" 
+                            id="offcanvas-service-name-input" 
+                            value="Service Name"
+                            style="background: transparent; border: none; color: #ffffff; font-size: 1.25rem; font-weight: 600; padding: 0;"
+                            onchange="updateServiceName(this.value)"
+                            onblur="updateServiceName(this.value)">
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body p-0">
+                <!-- Service Tabs -->
+                <ul class="nav nav-tabs border-bottom px-3" id="service-tabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview-pane" type="button" role="tab">
+                            Overview
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="variables-tab" data-bs-toggle="tab" data-bs-target="#variables-pane" type="button" role="tab">
+                            Variables
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings-pane" type="button" role="tab">
+                            Settings
+                        </button>
+                    </li>
+                </ul>
+                
+                <!-- Tab Content -->
+                <div class="tab-content p-3" id="service-tab-content">
+                    <!-- Overview Tab -->
+                    <div class="tab-pane fade show active" id="overview-pane" role="tabpanel">
+                        <div class="mb-4">
+                            <h6 class="mb-3"><i class="bi bi-code-square me-2"></i> Source</h6>
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-box me-2" style="font-size: 1.5rem;"></i>
+                                            <div>
+                                                <div class="fw-bold" id="offcanvas-service-name">Service Name</div>
+                                                <small class="text-muted" id="offcanvas-service-image">No image</small>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="editServiceSource()">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h6 class="mb-3"><i class="bi bi-slash-circle me-2"></i> Environment Variables</h6>
+                            <div id="offcanvas-variables-list">
+                                <p class="text-muted">No variables added to this service.</p>
+                            </div>
+                            <button type="button" class="btn btn-primary btn-sm" onclick="addVariable()">
+                                <i class="bi bi-plus-circle me-1"></i> Add variables
+                            </button>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h6 class="mb-3"><i class="bi bi-gear me-2"></i> Service Settings</h6>
+                            <p class="text-muted">No settings have been configured for this service.</p>
+                            <button type="button" class="btn btn-primary btn-sm" onclick="showSettingsTab()">
+                                <i class="bi bi-pencil me-1"></i> Edit settings
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Variables Tab -->
+                    <div class="tab-pane fade" id="variables-pane" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">Service Variables</h6>
+                            <div>
+                                <button type="button" class="btn btn-sm btn-outline-secondary me-2" onclick="toggleRawEditor()">
+                                    <i class="bi bi-code me-1"></i> Raw Editor
+                                </button>
+                                <button type="button" class="btn btn-sm btn-primary" onclick="addVariable()">
+                                    <i class="bi bi-plus-circle me-1"></i> New Variable
+                                </button>
+                            </div>
+                        </div>
+                        <div id="variables-editor">
+                            <div id="variables-list-container">
+                                <!-- Variables will be added here -->
+                            </div>
+                        </div>
+                        <div id="raw-editor-container" style="display: none;">
+                            <textarea class="form-control font-monospace" rows="10" id="raw-variables-editor" placeholder='{"KEY": "value"}'></textarea>
+                            <button type="button" class="btn btn-primary btn-sm mt-2" onclick="saveRawVariables()">Save</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Settings Tab -->
+                    <div class="tab-pane fade" id="settings-pane" role="tabpanel">
+                        <div class="mb-4">
+                            <h6 class="mb-3"><i class="bi bi-code-square me-2"></i> Source</h6>
+                            <div class="mb-3">
+                                <label class="form-label">Source Image</label>
+                                <input type="text" class="form-control" id="service-source-image" placeholder="e.g., docker-image:tag or ghcr.io/..." onchange="autoSaveService()">
+                                <small class="form-text text-muted">Configure auto updates</small>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h6 class="mb-3"><i class="bi bi-wifi me-2"></i> Networking</h6>
+                            <div class="mb-3">
+                                <label class="form-label">Public Networking</label>
+                                <p class="text-muted small">Make this service publicly accessible via HTTP, TCP, or both.</p>
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="addHttpProxy()">
+                                        <i class="bi bi-plus me-1"></i> HTTP Proxy
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="addTcpProxy()">
+                                        <i class="bi bi-plus me-1"></i> TCP Proxy
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h6 class="mb-3"><i class="bi bi-rocket me-2"></i> Deploy</h6>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">CPU</label>
+                                    <input type="number" class="form-control" id="service-cpu" value="8" min="1" max="32" onchange="autoSaveService()">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Memory (GB)</label>
+                                    <input type="number" class="form-control" id="service-memory" value="8" min="1" max="32" onchange="autoSaveService()">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Settings Tab Content -->
+    <div id="settings-tab" class="tab-content" style="display: {% if template_action == 'settings' %}block{% else %}none{% endif %};">
+        <div class="row g-0">
+            <!-- Settings Sidebar -->
+            <div class="col-md-3 border-end bg-light" style="min-height: 400px;">
+                <div class="p-3">
+                    <ul class="nav nav-pills flex-column" role="tablist">
+                        <li class="nav-item mb-2">
+                            <button 
+                                class="nav-link w-100 text-start active" 
+                                type="button"
+                                onclick="showSettingsSection('general')">
+                                <i class="bi bi-gear me-2"></i> General
+                            </button>
+                        </li>
+                        <li class="nav-item mb-2">
+                            <button 
+                                class="nav-link w-100 text-start" 
+                                type="button"
+                                onclick="showSettingsSection('danger')">
+                                <i class="bi bi-trash me-2"></i> Danger
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Settings Content -->
+            <div class="col-md-9">
+                <div class="p-4">
+                    <!-- General Section -->
+                    <div id="settings-general" class="settings-section">
+                        <h5 class="mb-4">Basic Info</h5>
+                        
+                        <div class="mb-3">
+                            <label for="template-name" class="form-label">Name</label>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                id="template-name" 
+                                placeholder="Enter template name" 
+                                required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="template-icon" class="form-label">Icon</label>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                id="template-icon" 
+                                placeholder="https://devicons.railway.com/i/bun.svg">
+                            <small class="form-text text-muted">Icon URL for the template</small>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="template-description" class="form-label">Description</label>
+                            <textarea 
+                                class="form-control" 
+                                id="template-description" 
+                                rows="4"
+                                placeholder="Enter template description"></textarea>
+                        </div>
+                        
+                        <button 
+                            type="button" 
+                            class="btn btn-primary"
+                            onclick="updateTemplateInfo()">
+                            Update Info
+                        </button>
+                    </div>
+                    
+                    <!-- Danger Section -->
+                    <div id="settings-danger" class="settings-section" style="display: none;">
+                        <h5 class="mb-4 text-danger">Danger Zone</h5>
+                        <div class="card border-danger">
+                            <div class="card-body">
+                                <h6 class="card-title">Delete Template</h6>
+                                <p class="card-text text-muted">Once you delete a template, there is no going back. Please be certain.</p>
+                                <button type="button" class="btn btn-danger">
+                                    Delete Template
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Hidden form for submission -->
+    <form id="template-form" method="post" style="display: none;">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="template">
+        <input type="hidden" name="name" id="form-template-name">
+        <input type="hidden" name="description" id="form-template-description">
+        <input type="hidden" name="template_config" id="form-template-config">
+    </form>
+</div>
+
+<script>
+let serviceCounter = 0;
+let services = {};
+
+function showTab(tabName) {
+    // Hide all tabs
+    document.getElementById('architecture-tab').style.display = 'none';
+    document.getElementById('settings-tab').style.display = 'none';
+    
+    // Show selected tab
+    if (tabName === 'architecture') {
+        document.getElementById('architecture-tab').style.display = 'block';
+    } else if (tabName === 'settings') {
+        document.getElementById('settings-tab').style.display = 'block';
+    }
+    
+    // Update active tab button
+    document.querySelectorAll('.btn-link').forEach(btn => {
+        const btnText = btn.textContent.trim();
+        if (btnText === 'Architecture' || btnText === 'Settings') {
+            if ((tabName === 'architecture' && btnText === 'Architecture') ||
+                (tabName === 'settings' && btnText === 'Settings')) {
+                btn.style.borderBottomColor = '#000';
+            } else {
+                btn.style.borderBottomColor = 'transparent';
+            }
+        }
+    });
+}
+
+function showSettingsSection(section) {
+    // Hide all sections
+    document.getElementById('settings-general').style.display = 'none';
+    document.getElementById('settings-danger').style.display = 'none';
+    
+    // Show selected section
+    document.getElementById('settings-' + section).style.display = 'block';
+    
+    // Update active sidebar item
+    document.querySelectorAll('#settings-tab .nav-link').forEach(link => {
+        link.classList.remove('active');
+    });
+    event.target.closest('.nav-link').classList.add('active');
+}
+
+function updateTemplateInfo() {
+    // This function can be used to update template info without saving the whole template
+    const name = document.getElementById('template-name').value;
+    const description = document.getElementById('template-description').value;
+    const icon = document.getElementById('template-icon').value;
+    
+    if (!name) {
+        alert('Template name is required!');
+        return;
+    }
+    
+    // Show success message
+    alert('Template information updated!');
+}
+
+let currentServiceId = null;
+let autoSaveTimeout = null;
+
+function addServiceCard() {
+    serviceCounter++;
+    const serviceId = `service_${serviceCounter}`;
+    const canvas = document.getElementById('services-canvas');
+    const emptyState = document.getElementById('empty-state');
+    
+    // Hide empty state
+    if (emptyState) {
+        emptyState.style.display = 'none';
+    }
+    
+    // Create service object
+    services[serviceId] = {
+        id: serviceId,
+        name: 'New Service',
+        image: '',
+        cpu: 8,
+        memory: 8,
+        variables: {},
+        networking: {
+            http: false,
+            tcp: false
+        }
+    };
+    
+    // Create service card HTML (Railway style)
+    const cardHtml = `
+        <div class="service-card railway-card" data-service-id="${serviceId}">
+            <button 
+                type="button" 
+                class="btn btn-sm btn-link text-danger p-0 btn-remove"
+                onclick="removeServiceCard('${serviceId}', event)"
+                title="Remove service">
+                <i class="bi bi-x-lg"></i>
+            </button>
+            <div class="service-card-content" onclick="openServiceDetails('${serviceId}')" style="cursor: pointer;">
+                <i class="bi bi-box service-card-icon"></i>
+                <div class="service-card-info">
+                    <div class="service-card-name">New Service</div>
+                    <div class="service-card-subtitle">No image</div>
+                </div>
+                <div class="service-card-badge">
+                    <i class="bi bi-list-ul me-1"></i>
+                    <small>No config required</small>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    canvas.insertAdjacentHTML('beforeend', cardHtml);
+    updateEmptyState();
+}
+
+function openServiceDetails(serviceId) {
+    console.log('Opening service details for:', serviceId);
+    currentServiceId = serviceId;
+    const service = services[serviceId];
+    
+    if (!service) {
+        console.error('Service not found:', serviceId);
+        return;
+    }
+    
+    // Update offcanvas header
+    const nameInput = document.getElementById('offcanvas-service-name-input');
+    if (nameInput) {
+        nameInput.value = service.name || 'New Service';
+    }
+    const imageEl = document.getElementById('offcanvas-service-image');
+    if (imageEl) {
+        imageEl.textContent = service.image || 'No image';
+    }
+    
+    // Update form fields
+    const sourceImage = document.getElementById('service-source-image');
+    if (sourceImage) {
+        sourceImage.value = service.image || '';
+    }
+    const cpuField = document.getElementById('service-cpu');
+    if (cpuField) {
+        cpuField.value = service.cpu || 8;
+    }
+    const memoryField = document.getElementById('service-memory');
+    if (memoryField) {
+        memoryField.value = service.memory || 8;
+    }
+    
+    // Update variables list
+    updateVariablesList();
+    
+    // Highlight selected card
+    document.querySelectorAll('.service-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    const selectedCard = document.querySelector(`[data-service-id="${serviceId}"]`);
+    if (selectedCard) {
+        selectedCard.classList.add('selected');
+    }
+    
+    // Show offcanvas
+    const offcanvasEl = document.getElementById('service-offcanvas');
+    if (!offcanvasEl) {
+        console.error('Offcanvas element not found');
+        alert('Offcanvas element not found. Please refresh the page.');
+        return;
+    }
+    
+    // Wait for Bootstrap to be available
+    function showOffcanvas() {
+        if (typeof bootstrap !== 'undefined' && bootstrap.Offcanvas) {
+            try {
+                // Get existing instance or create new one
+                let offcanvas = bootstrap.Offcanvas.getInstance(offcanvasEl);
+                if (!offcanvas) {
+                    offcanvas = new bootstrap.Offcanvas(offcanvasEl);
+                }
+                offcanvas.show();
+            } catch (e) {
+                console.error('Error showing offcanvas:', e);
+                // Fallback: show manually
+                offcanvasEl.classList.add('show');
+                offcanvasEl.style.visibility = 'visible';
+                offcanvasEl.style.transform = 'translateX(0)';
+                document.body.style.overflow = 'hidden';
+                // Add backdrop
+                const backdrop = document.createElement('div');
+                backdrop.className = 'offcanvas-backdrop fade show';
+                backdrop.id = 'offcanvas-backdrop';
+                document.body.appendChild(backdrop);
+            }
+        } else {
+            // Bootstrap not loaded yet, try again after a short delay
+            setTimeout(showOffcanvas, 100);
+        }
+    }
+    
+    showOffcanvas();
+}
+
+function updateServiceName(name) {
+    if (!currentServiceId || !services[currentServiceId]) return;
+    
+    services[currentServiceId].name = name || 'New Service';
+    updateServiceCardDisplay(currentServiceId);
+    autoSaveService();
+}
+
+function autoSaveService() {
+    if (!currentServiceId || !services[currentServiceId]) return;
+    
+    const service = services[currentServiceId];
+    
+    // Update service data from form
+    service.image = document.getElementById('service-source-image').value;
+    service.cpu = parseInt(document.getElementById('service-cpu').value) || 8;
+    service.memory = parseInt(document.getElementById('service-memory').value) || 8;
+    
+    // Update card display
+    updateServiceCardDisplay(currentServiceId);
+    
+    // Auto-save with debounce
+    clearTimeout(autoSaveTimeout);
+    autoSaveTimeout = setTimeout(() => {
+        console.log('Auto-saving service:', service);
+        // Here you can add actual save logic if needed
+    }, 1000);
+}
+
+function updateServiceCardDisplay(serviceId) {
+    const service = services[serviceId];
+    if (!service) return;
+    
+    const card = document.querySelector(`[data-service-id="${serviceId}"]`);
+    if (!card) return;
+    
+    const nameEl = card.querySelector('.service-card-name');
+    const subtitleEl = card.querySelector('.service-card-subtitle');
+    
+    if (nameEl) nameEl.textContent = service.name || 'New Service';
+    if (subtitleEl) {
+        const imageText = service.image || 'No image';
+        subtitleEl.textContent = imageText.length > 30 ? imageText.substring(0, 30) + '...' : imageText;
+    }
+}
+
+function addVariable() {
+    if (!currentServiceId) return;
+    
+    const key = prompt('Enter variable key:');
+    if (!key) return;
+    
+    const value = prompt('Enter variable value:');
+    
+    if (!services[currentServiceId].variables) {
+        services[currentServiceId].variables = {};
+    }
+    
+    services[currentServiceId].variables[key] = value || '';
+    updateVariablesList();
+    autoSaveService();
+}
+
+function updateVariablesList() {
+    if (!currentServiceId || !services[currentServiceId]) return;
+    
+    const variables = services[currentServiceId].variables || {};
+    const container = document.getElementById('variables-list-container');
+    const overviewList = document.getElementById('offcanvas-variables-list');
+    
+    if (Object.keys(variables).length === 0) {
+        if (container) container.innerHTML = '<p class="text-muted">No Service Variables</p>';
+        if (overviewList) overviewList.innerHTML = '<p class="text-muted">No variables added to this service.</p>';
+        return;
+    }
+    
+    // Update variables list in Variables tab
+    if (container) {
+        let html = '<div class="table-responsive"><table class="table table-sm">';
+        html += '<thead><tr><th>Key</th><th>Value</th><th>Actions</th></tr></thead><tbody>';
+        
+        Object.keys(variables).forEach(key => {
+            html += `
+                <tr>
+                    <td><code>${key}</code></td>
+                    <td><input type="text" class="form-control form-control-sm" value="${variables[key]}" onchange="updateVariable('${key}', this.value)"></td>
+                    <td><button class="btn btn-sm btn-link text-danger" onclick="removeVariable('${key}')"><i class="bi bi-trash"></i></button></td>
+                </tr>
+            `;
+        });
+        
+        html += '</tbody></table></div>';
+        container.innerHTML = html;
+    }
+    
+    // Update overview list
+    if (overviewList) {
+        let html = '<div class="list-group">';
+        Object.keys(variables).forEach(key => {
+            html += `
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <code>${key}</code>
+                        <div class="text-muted small">${variables[key]}</div>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        overviewList.innerHTML = html;
+    }
+}
+
+function updateVariable(key, value) {
+    if (!currentServiceId || !services[currentServiceId]) return;
+    
+    if (!services[currentServiceId].variables) {
+        services[currentServiceId].variables = {};
+    }
+    
+    services[currentServiceId].variables[key] = value;
+    autoSaveService();
+}
+
+function removeVariable(key) {
+    if (!currentServiceId || !services[currentServiceId]) return;
+    
+    if (services[currentServiceId].variables) {
+        delete services[currentServiceId].variables[key];
+        updateVariablesList();
+        autoSaveService();
+    }
+}
+
+function toggleRawEditor() {
+    const editor = document.getElementById('raw-editor-container');
+    const list = document.getElementById('variables-editor');
+    
+    if (editor.style.display === 'none') {
+        // Show raw editor with current variables
+        const variables = services[currentServiceId]?.variables || {};
+        document.getElementById('raw-variables-editor').value = JSON.stringify(variables, null, 2);
+        editor.style.display = 'block';
+        list.style.display = 'none';
+    } else {
+        editor.style.display = 'none';
+        list.style.display = 'block';
+    }
+}
+
+function saveRawVariables() {
+    if (!currentServiceId) return;
+    
+    try {
+        const rawText = document.getElementById('raw-variables-editor').value;
+        const variables = JSON.parse(rawText);
+        services[currentServiceId].variables = variables;
+        updateVariablesList();
+        toggleRawEditor();
+        autoSaveService();
+    } catch (e) {
+        alert('Invalid JSON format');
+    }
+}
+
+function addHttpProxy() {
+    if (!currentServiceId) return;
+    
+    if (!services[currentServiceId].networking) {
+        services[currentServiceId].networking = {};
+    }
+    services[currentServiceId].networking.http = true;
+    autoSaveService();
+}
+
+function addTcpProxy() {
+    if (!currentServiceId) return;
+    
+    if (!services[currentServiceId].networking) {
+        services[currentServiceId].networking = {};
+    }
+    services[currentServiceId].networking.tcp = true;
+    autoSaveService();
+}
+
+function showSettingsTab() {
+    const settingsTab = document.getElementById('settings-tab');
+    if (settingsTab) {
+        const tab = new bootstrap.Tab(settingsTab);
+        tab.show();
+    }
+}
+
+function editServiceSource() {
+    showSettingsTab();
+}
+
+function removeServiceCard(serviceId, event) {
+    if (event) {
+        event.stopPropagation();
+    }
+    
+    if (confirm('Are you sure you want to remove this service?')) {
+        const card = document.querySelector(`[data-service-id="${serviceId}"]`);
+        if (card) {
+            card.remove();
+            delete services[serviceId];
+            updateEmptyState();
+            
+            // Close offcanvas if this service was open
+            if (currentServiceId === serviceId) {
+                const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('service-offcanvas'));
+                if (offcanvas) {
+                    offcanvas.hide();
+                }
+                currentServiceId = null;
+            }
+        }
+    }
+}
+
+function updateEmptyState() {
+    const canvas = document.getElementById('services-canvas');
+    const emptyState = document.getElementById('empty-state');
+    const serviceCards = canvas.querySelectorAll('.service-card');
+    
+    if (serviceCards.length === 0 && emptyState) {
+        emptyState.style.display = 'block';
+    } else if (emptyState) {
+        emptyState.style.display = 'none';
+    }
+}
+
+function buildTemplateConfig() {
+    const templateName = document.getElementById('template-name').value;
+    const templateDesc = document.getElementById('template-description').value;
+    
+    if (!templateName) {
+        alert('Template name is required! Please go to Settings tab and enter a template name.');
+        return false;
+    }
+    
+    // Get workspace ID from settings
+    const workspaceId = '{{ settings.railway_workspace_id|default:"" }}';
+    if (!workspaceId) {
+        alert('Please configure your Railway Workspace ID in Configurations first!');
+        return false;
+    }
+    
+    // Build services config
+    const servicesConfig = {};
+    Object.keys(services).forEach(serviceId => {
+        const service = services[serviceId];
+        if (!service.name) return;
+        
+        const serviceConfig = {
+            name: service.name,
+            source: service.image ? { image: service.image } : {},
+            deploy: {
+                limitOverride: {
+                    containers: {
+                        cpu: service.cpu || 8,
+                        memoryBytes: (service.memory || 8) * 1024 * 1024 * 1024
+                    }
+                }
+            },
+            networking: {
+                tcpProxies: {},
+                serviceDomains: {}
+            }
+        };
+        
+        // Add variables if any
+        if (Object.keys(service.variables).length > 0) {
+            serviceConfig.variables = {};
+            Object.keys(service.variables).forEach(key => {
+                serviceConfig.variables[key] = { value: service.variables[key] };
+            });
+        }
+        
+        servicesConfig[service.id || serviceId] = serviceConfig;
+    });
+    
+    const templateConfig = {
+        input: {
+            serializedConfig: {
+                services: servicesConfig
+            },
+            workspaceId: workspaceId,
+            templateId: null,
+            environmentId: null,
+            projectId: null
+        }
+    };
+    
+    // Set form values
+    document.getElementById('form-template-name').value = templateName;
+    document.getElementById('form-template-description').value = templateDesc;
+    document.getElementById('form-template-config').value = JSON.stringify(templateConfig);
+    
+    return true;
+}
+
+function saveTemplate() {
+    if (!buildTemplateConfig()) {
+        return;
+    }
+    
+    const form = document.getElementById('template-form');
+    if (form) {
+        // Create form data
+        const formData = new FormData(form);
+        
+        // Submit via HTMX
+        htmx.ajax('POST', '{% url "accounts:settings" %}?tab=template', {
+            target: '#template-content',
+            swap: 'innerHTML',
+            values: formData
+        });
+    }
+}
+
+// Initialize empty state on load and hide sidebar
+document.addEventListener('DOMContentLoaded', function() {
+    updateEmptyState();
+    hideSidebar();
+    
+    // Make sure openServiceDetails is globally accessible
+    window.openServiceDetails = openServiceDetails;
+    window.removeServiceCard = removeServiceCard;
+    window.addServiceCard = addServiceCard;
+    window.addVariable = addVariable;
+    window.updateVariable = updateVariable;
+    window.removeVariable = removeVariable;
+    window.toggleRawEditor = toggleRawEditor;
+    window.saveRawVariables = saveRawVariables;
+    window.addHttpProxy = addHttpProxy;
+    window.addTcpProxy = addTcpProxy;
+    window.showSettingsTab = showSettingsTab;
+    window.editServiceSource = editServiceSource;
+    window.updateServiceName = updateServiceName;
+    window.autoSaveService = autoSaveService;
+});
+
+function hideSidebar() {
+    const sidebar = document.querySelector('.settings-container .col-md-3');
+    const mainContent = document.getElementById('main-content-wrapper');
+    const settingsMainContent = document.getElementById('settings-main-content');
+    const settingsContainer = document.querySelector('.settings-container');
+    
+    if (sidebar) sidebar.style.display = 'none';
+    if (mainContent) {
+        mainContent.classList.remove('col-md-9');
+        mainContent.classList.add('col-12');
+        mainContent.style.padding = '0';
+    }
+    if (settingsMainContent) {
+        settingsMainContent.style.padding = '0';
+    }
+    if (settingsContainer) {
+        settingsContainer.classList.add('template-editor-mode');
+    }
+}
+
+// Hide sidebar immediately when template editor loads
+hideSidebar();
+</script>
+
+<style>
+.template-editor-full {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    display: block;
+}
+
+.services-canvas-wrapper {
+    position: relative;
+    width: 100%;
+    min-height: calc(100vh - 150px);
+    display: block;
+}
+
+.add-button-container {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 10;
+}
+
+.services-canvas {
+    background-image: 
+        linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+    background-color: #0f0f0f;
+    border-radius: 8px;
+    padding: 2rem;
+    padding-top: 4rem;
+    min-height: calc(100vh - 150px);
+    height: calc(100vh - 150px);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    position: relative;
+    width: 100%;
+    margin: 0;
+}
+
+#architecture-tab {
+    display: block !important;
+    width: 100%;
+    height: 100%;
+    min-height: calc(100vh - 150px);
+}
+
+.template-editor-full {
+    width: 100%;
+    min-height: calc(100vh - 150px);
+}
+
+.service-card {
+    background: #1a1a1a;
+    border: 2px solid #2d2d2d;
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.2s;
+    cursor: pointer;
+    position: relative;
+}
+
+.service-card:hover {
+    border-color: #6366f1;
+    transform: translateY(-2px);
+}
+
+.service-card.selected {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+.service-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.service-card-icon {
+    font-size: 2rem;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+}
+
+.service-card-info {
+    flex: 1;
+}
+
+.service-card-name {
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.service-card-subtitle {
+    color: #9ca3af;
+    font-size: 0.875rem;
+}
+
+.service-card-badge {
+    display: flex;
+    align-items: center;
+    color: #9ca3af;
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.service-card .btn-remove {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.service-card:hover .btn-remove {
+    opacity: 1;
+}
+
+.service-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.service-icon {
+    font-size: 1.5rem;
+    color: #6c757d;
+}
+
+.service-card-body {
+    padding-top: 0.5rem;
+}
+
+.service-config-info {
+    display: flex;
+    align-items: center;
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+#empty-state {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    color: #ffffff;
+}
+
+#empty-state .text-muted {
+    color: #9ca3af !important;
+}
+
+.offcanvas {
+    background-color: #1a1a1a;
+    color: #ffffff;
+    width: 50% !important;
+    height: calc(100vh - 150px) !important;
+    top: auto !important;
+    bottom: auto !important;
+}
+
+.offcanvas-header {
+    background-color: #1a1a1a;
+    border-bottom-color: #2d2d2d !important;
+}
+
+.offcanvas-body {
+    background-color: #1a1a1a;
+    overflow-y: auto;
+    max-height: calc(100vh - 250px);
+}
+
+.nav-tabs {
+    border-bottom-color: #2d2d2d;
+}
+
+.nav-tabs .nav-link {
+    color: #9ca3af;
+    border-color: transparent;
+}
+
+.nav-tabs .nav-link:hover {
+    border-color: transparent;
+    color: #ffffff;
+}
+
+.nav-tabs .nav-link.active {
+    color: #ffffff;
+    background-color: transparent;
+    border-color: #2d2d2d #2d2d2d transparent;
+}
+
+.tab-content {
+    color: #ffffff;
+}
+
+.form-control, .form-select {
+    background-color: #2d2d2d;
+    border-color: #3d3d3d;
+    color: #ffffff;
+}
+
+.form-control:focus, .form-select:focus {
+    background-color: #2d2d2d;
+    border-color: #6366f1;
+    color: #ffffff;
+}
+
+.card {
+    background-color: #2d2d2d;
+    border-color: #3d3d3d;
+}
+
+.table {
+    color: #ffffff;
+}
+
+.table thead th {
+    border-color: #3d3d3d;
+    color: #9ca3af;
+}
+
+.table tbody td {
+    border-color: #3d3d3d;
+}
+
+.settings-section {
+    max-width: 600px;
+}
+
+@media (max-width: 768px) {
+    .services-canvas {
+        grid-template-columns: 1fr;
+    }
+}
+</style>

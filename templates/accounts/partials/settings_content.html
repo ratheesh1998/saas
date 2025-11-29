@@ -1,0 +1,179 @@
+{% load crispy_forms_tags %}
+
+<div class="settings-container">
+    <div class="row g-0">
+        <!-- Sidebar -->
+        <div class="col-md-3 border-end bg-light" style="min-height: calc(100vh - 200px);">
+            <div class="p-3">
+                <h5 class="mb-3 text-muted small text-uppercase">Settings</h5>
+                <ul class="nav nav-pills flex-column" role="tablist">
+                    <li class="nav-item mb-2">
+                        <button 
+                            class="nav-link w-100 text-start {% if active_tab == 'config' %}active{% endif %}" 
+                            type="button"
+                            hx-get="{% url 'accounts:settings' %}?tab=config"
+                            hx-target="#settings-main-content"
+                            hx-swap="innerHTML"
+                            hx-push-url="{% url 'accounts:settings' %}?tab=config">
+                            <i class="bi bi-gear me-2"></i> Configurations
+                        </button>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <button 
+                            class="nav-link w-100 text-start {% if active_tab == 'template' %}active{% endif %}" 
+                            type="button"
+                            hx-get="{% url 'accounts:settings' %}?tab=template"
+                            hx-target="#settings-main-content"
+                            hx-swap="innerHTML"
+                            hx-push-url="{% url 'accounts:settings' %}?tab=template">
+                            <i class="bi bi-file-earmark-code me-2"></i> Templates
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Main Content Area -->
+        <div class="col-md-9" id="main-content-wrapper">
+            <div class="p-4" id="settings-main-content">
+                {% include 'accounts/partials/settings_tab_content.html' %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Messages (Global) -->
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3" 
+             role="alert" 
+             style="z-index: 9999; max-width: 500px;"
+             hx-swap-oob="true" 
+             id="settings-message">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<script>
+    // Initialize sidebar navigation on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const activeTab = urlParams.get('tab') || 'config';
+        
+        // Update active sidebar item
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.classList.remove('active');
+        });
+        
+        const activeNavItem = document.querySelector(`[hx-get*="tab=${activeTab}"]`);
+        if (activeNavItem) {
+            activeNavItem.classList.add('active');
+        }
+    });
+    
+    // Handle sidebar navigation with HTMX
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+        if (evt.detail.target.id === 'settings-main-content') {
+            // Check if template editor is active (full view)
+            const templateEditor = document.getElementById('template-editor-full');
+            const sidebar = document.querySelector('.settings-container .col-md-3');
+            const mainContent = document.getElementById('main-content-wrapper');
+            const settingsContainer = document.querySelector('.settings-container');
+            
+            if (templateEditor) {
+                // Hide sidebar and make content full width
+                if (sidebar) sidebar.style.display = 'none';
+                if (mainContent) {
+                    mainContent.classList.remove('col-md-9');
+                    mainContent.classList.add('col-12');
+                }
+                if (settingsContainer) {
+                    settingsContainer.classList.add('template-editor-mode');
+                }
+            } else {
+                // Show sidebar and restore normal width
+                if (sidebar) sidebar.style.display = 'block';
+                if (mainContent) {
+                    mainContent.classList.remove('col-12');
+                    mainContent.classList.add('col-md-9');
+                }
+                if (settingsContainer) {
+                    settingsContainer.classList.remove('template-editor-mode');
+                }
+            }
+            
+            // Update active sidebar item
+            const urlParams = new URLSearchParams(window.location.search);
+            const activeTab = urlParams.get('tab') || 'config';
+            
+            // Remove active class from all sidebar items
+            document.querySelectorAll('.settings-container .nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // Add active class to current sidebar item
+            const activeNavItem = document.querySelector(`.settings-container [hx-get*="tab=${activeTab}"]`);
+            if (activeNavItem) {
+                activeNavItem.classList.add('active');
+            }
+        }
+    });
+    
+    // Check on initial load
+    document.addEventListener('DOMContentLoaded', function() {
+        const templateEditor = document.getElementById('template-editor-full');
+        const sidebar = document.querySelector('.settings-container .col-md-3');
+        const mainContent = document.getElementById('main-content-wrapper');
+        const settingsContainer = document.querySelector('.settings-container');
+        
+        if (templateEditor) {
+            if (sidebar) sidebar.style.display = 'none';
+            if (mainContent) {
+                mainContent.classList.remove('col-md-9');
+                mainContent.classList.add('col-12');
+            }
+            if (settingsContainer) {
+                settingsContainer.classList.add('template-editor-mode');
+            }
+        }
+    });
+</script>
+
+<style>
+    .settings-container .nav-link {
+        color: #495057;
+        border-radius: 6px;
+        padding: 0.5rem 1rem;
+        transition: all 0.2s;
+        background-color: transparent;
+    }
+    
+    .settings-container .nav-link:hover {
+        background-color: #e9ecef;
+        color: #212529;
+    }
+    
+    .settings-container .nav-link.active {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+    }
+    
+    .settings-container .nav-link.active:hover {
+        background-color: #212529 !important;
+        color: #ffffff !important;
+    }
+    
+    .settings-container .nav-link.active i {
+        color: #ffffff !important;
+    }
+    
+    .settings-container.template-editor-mode {
+        width: 100%;
+    }
+    
+    .settings-container.template-editor-mode .row {
+        margin: 0;
+    }
+</style>

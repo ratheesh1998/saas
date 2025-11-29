@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - SaaS Platform{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Dashboard</h2>
+        </div>
+        
+        <div class="welcome-card mb-4">
+            <h4 class="mb-2">Welcome back, {{ user.email }}</h4>
+            <p class="mb-0">Manage your SaaS products and deployments from here.</p>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Your Products</h5>
+                        <p class="card-text">You haven't deployed any products yet.</p>
+                        <a href="#" class="btn btn-primary">Deploy New Product</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Quick Actions</h5>
+                        <p class="card-text">Get started with your first deployment.</p>
+                        <a href="#" class="btn btn-outline-primary">View Documentation</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

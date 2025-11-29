@@ -1,0 +1,93 @@
+<!-- Configurations Tab -->
+{% if active_tab == 'config' %}
+<div id="config-content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">Configurations</h2>
+            <p class="text-muted mb-0 small">Manage your Railway.app credentials</p>
+        </div>
+    </div>
+    
+    <div id="settings-form-container">
+        {% include 'accounts/partials/settings_form.html' %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Templates Tab -->
+{% if active_tab == 'template' %}
+<div id="template-content">
+    {% if template_action == 'create' or template_action == 'architecture' or template_action == 'settings' %}
+        <!-- Template Editor (Full Grid View) -->
+        <div id="template-form-container" style="width: 100%; min-height: calc(100vh - 150px); padding: 0; margin: 0;">
+            {% include 'accounts/partials/template_editor.html' %}
+        </div>
+    {% else %}
+        <!-- Templates List View -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-1">Templates</h2>
+                <p class="text-muted mb-0 small">Create and manage your Railway templates</p>
+            </div>
+            <button 
+                type="button" 
+                class="btn btn-dark text-white"
+                hx-get="{% url 'accounts:settings' %}?tab=template&action=create"
+                hx-target="#template-content"
+                hx-swap="innerHTML">
+                <i class="bi bi-plus-circle me-1"></i> NEW TEMPLATE
+            </button>
+        </div>
+        <!-- Templates List -->
+        {% if templates %}
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title mb-3">Your Templates</h6>
+                <div class="list-group list-group-flush">
+                    {% for template in templates %}
+                    <div class="list-group-item d-flex justify-content-between align-items-start px-0">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">{{ template.name }}</h6>
+                            {% if template.description %}
+                            <p class="mb-1 text-muted small">{{ template.description }}</p>
+                            {% endif %}
+                            <small class="text-muted">
+                                Created {{ template.created_at|date:"M d, Y" }}
+                                {% if template.railway_template_id %}
+                                • Railway ID: {{ template.railway_template_id }}
+                                {% endif %}
+                            </small>
+                        </div>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-eye"></i> View
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-file-earmark-code" style="font-size: 3rem; color: #dee2e6;"></i>
+                <h5 class="mt-3 text-muted">No templates found</h5>
+                <p class="text-muted mb-4">Get started by creating your first template</p>
+                <button 
+                    type="button" 
+                    class="btn btn-primary"
+                    hx-get="{% url 'accounts:settings' %}?tab=template&action=create"
+                    hx-target="#template-content"
+                    hx-swap="innerHTML">
+                    <i class="bi bi-plus-circle me-1"></i> Create Template
+                </button>
+            </div>
+        </div>
+        {% endif %}
+    {% endif %}
+</div>
+{% endif %}

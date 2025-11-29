@@ -1,0 +1,397 @@
+{% load crispy_forms_tags %}
+
+<!-- Messages (for HTMX updates) -->
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert" 
+             hx-swap-oob="true" id="settings-message">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+{% if template_form %}
+<div class="card">
+    <div class="card-header bg-transparent">
+        <h5 class="mb-0">Create New Template</h5>
+    </div>
+    <div class="card-body">
+        <form method="post" 
+              id="template-creation-form"
+              hx-post="{% url 'accounts:settings' %}?tab=template" 
+              hx-target="#template-content" 
+              hx-swap="innerHTML"
+              hx-indicator="#template-loading-indicator">
+    {% csrf_token %}
+    <input type="hidden" name="form_type" value="template">
+    
+    <!-- Basic Template Info -->
+    <div class="mb-3">
+        <label for="id_template_name" class="form-label">
+            Template Name <span class="text-danger">*</span>
+        </label>
+        <input 
+            type="text" 
+            name="name" 
+            id="id_template_name" 
+            class="form-control" 
+            placeholder="Enter template name"
+            required
+            value="{% if template_form.name.value %}{{ template_form.name.value }}{% endif %}">
+        {% if template_form.name.errors %}
+            <div class="text-danger small mt-1">
+                {{ template_form.name.errors }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="mb-3">
+        <label for="id_template_description" class="form-label">
+            Description
+        </label>
+        <textarea 
+            name="description" 
+            id="id_template_description" 
+            class="form-control" 
+            placeholder="Enter template description"
+            rows="3">{% if template_form.description.value %}{{ template_form.description.value }}{% endif %}</textarea>
+        {% if template_form.description.errors %}
+            <div class="text-danger small mt-1">
+                {{ template_form.description.errors }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Railway IDs (from saved settings) -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h6 class="mb-0">Railway Configuration</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Workspace ID <span class="text-danger">*</span></label>
+                    <input 
+                        type="text" 
+                        id="workspace_id" 
+                        class="form-control" 
+                        placeholder="Workspace ID"
+                        value="{% if settings.railway_workspace_id %}{{ settings.railway_workspace_id }}{% endif %}"
+                        readonly>
+                    <small class="form-text text-muted">Fetched from your saved settings</small>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Template ID</label>
+                    <input 
+                        type="text" 
+                        id="template_id" 
+                        class="form-control" 
+                        placeholder="Template ID (optional)"
+                        value="{% if settings.railway_template_id %}{{ settings.railway_template_id }}{% endif %}">
+                    <small class="form-text text-muted">From your saved settings (can be overridden)</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Services Section -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">Services</h6>
+            <button type="button" class="btn btn-sm btn-primary" onclick="addService()">
+                <i class="bi bi-plus-circle"></i> Add Service
+            </button>
+        </div>
+        <div class="card-body">
+            <div id="services-container">
+                <!-- Services will be added here dynamically -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Hidden field for JSON config -->
+    <input type="hidden" name="template_config" id="template_config_json">
+    
+    <!-- Preview/JSON Output -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h6 class="mb-0">Template Configuration (JSON Preview)</h6>
+        </div>
+        <div class="card-body">
+            <pre id="json-preview" class="bg-light p-3 rounded" style="max-height: 400px; overflow-y: auto; font-size: 12px;">{}</pre>
+        </div>
+    </div>
+    
+            <div class="d-flex align-items-center gap-2 mt-4">
+                <button type="submit" class="btn btn-primary" onclick="buildTemplateConfig()">
+                    <span class="spinner-border spinner-border-sm d-none" id="template-loading-indicator" role="status" aria-hidden="true"></span>
+                    Create Template
+                </button>
+                <button 
+                    type="button" 
+                    class="btn btn-outline-secondary"
+                    hx-get="{% url 'accounts:settings' %}?tab=template"
+                    hx-target="#template-content"
+                    hx-swap="innerHTML">
+                    Cancel
+                </button>
+                <span class="text-muted small" id="template-save-status"></span>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+let serviceCounter = 0;
+
+// Initialize with one service
+document.addEventListener('DOMContentLoaded', function() {
+    addService();
+    updateJsonPreview();
+});
+
+function addService() {
+    serviceCounter++;
+    const serviceId = `service_${serviceCounter}`;
+    const container = document.getElementById('services-container');
+    
+    const serviceHtml = `
+        <div class="card mb-3 service-item" data-service-id="${serviceId}">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Service ${serviceCounter}</h6>
+                <button type="button" class="btn btn-sm btn-danger" onclick="removeService('${serviceId}')">
+                    <i class="bi bi-trash"></i> Remove
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Service ID <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control service-id" placeholder="e.g., horilla_service_1" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Service Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control service-name" placeholder="e.g., Horilla" required>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Source Image</label>
+                    <input type="text" class="form-control service-image" placeholder="e.g., your-docker-image:tag">
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Docker Username</label>
+                    <input type="text" class="form-control docker-username" placeholder="Docker registry username">
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Docker Password</label>
+                    <input type="password" class="form-control docker-password" placeholder="Docker registry password">
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">CPU Limit</label>
+                        <input type="number" class="form-control service-cpu" placeholder="8" value="8">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Memory (GB)</label>
+                        <input type="number" class="form-control service-memory" placeholder="8" value="8">
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">TCP Proxy Ports (comma-separated)</label>
+                        <input type="text" class="form-control service-tcp-ports" placeholder="e.g., 8000,5432">
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Environment Variables (JSON)</label>
+                    <textarea class="form-control service-variables" rows="5" placeholder='{"KEY": "value", "ANOTHER_KEY": "another_value"}'></textarea>
+                    <small class="form-text text-muted">Enter as JSON object</small>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', serviceHtml);
+    updateJsonPreview();
+}
+
+function removeService(serviceId) {
+    const serviceElement = document.querySelector(`[data-service-id="${serviceId}"]`);
+    if (serviceElement) {
+        serviceElement.remove();
+        updateJsonPreview();
+    }
+}
+
+function buildTemplateConfig() {
+    const workspaceId = document.getElementById('workspace_id').value;
+    const templateId = document.getElementById('template_id').value;
+    
+    if (!workspaceId) {
+        alert('Workspace ID is required!');
+        return false;
+    }
+    
+    const services = {};
+    const serviceItems = document.querySelectorAll('.service-item');
+    
+    serviceItems.forEach(item => {
+        const serviceId = item.querySelector('.service-id').value || `service_${Date.now()}`;
+        const serviceName = item.querySelector('.service-name').value || 'Unnamed Service';
+        const serviceImage = item.querySelector('.service-image').value;
+        const dockerUsername = item.querySelector('.docker-username').value;
+        const dockerPassword = item.querySelector('.docker-password').value;
+        const cpu = parseInt(item.querySelector('.service-cpu').value) || 8;
+        const memoryGB = parseInt(item.querySelector('.service-memory').value) || 8;
+        const memoryBytes = memoryGB * 1024 * 1024 * 1024;
+        const tcpPorts = item.querySelector('.service-tcp-ports').value;
+        const variablesText = item.querySelector('.service-variables').value;
+        
+        let variables = {};
+        if (variablesText.trim()) {
+            try {
+                variables = JSON.parse(variablesText);
+            } catch (e) {
+                alert(`Invalid JSON in variables for ${serviceName}: ${e.message}`);
+                throw e;
+            }
+        }
+        
+        // Build TCP proxies
+        const tcpProxies = {};
+        if (tcpPorts) {
+            tcpPorts.split(',').forEach(port => {
+                const cleanPort = port.trim();
+                if (cleanPort) {
+                    tcpProxies[cleanPort] = {};
+                }
+            });
+        }
+        
+        // Build service config
+        const serviceConfig = {
+            name: serviceName,
+            source: serviceImage ? { image: serviceImage } : {},
+            deploy: {
+                limitOverride: {
+                    containers: {
+                        cpu: cpu,
+                        memoryBytes: memoryBytes
+                    }
+                }
+            },
+            networking: {
+                tcpProxies: tcpProxies,
+                serviceDomains: {}
+            }
+        };
+        
+        // Add registry credentials if provided
+        if (dockerUsername && dockerPassword) {
+            serviceConfig.deploy.registryCredentials = {
+                username: dockerUsername,
+                password: dockerPassword
+            };
+        }
+        
+        // Add variables if provided
+        if (Object.keys(variables).length > 0) {
+            const formattedVars = {};
+            Object.keys(variables).forEach(key => {
+                formattedVars[key] = { value: variables[key] };
+            });
+            serviceConfig.variables = formattedVars;
+        }
+        
+        services[serviceId] = serviceConfig;
+    });
+    
+    const templateConfig = {
+        input: {
+            serializedConfig: {
+                services: services
+            },
+            workspaceId: workspaceId,
+            templateId: templateId || null,
+            environmentId: null,
+            projectId: null
+        }
+    };
+    
+    // Store in hidden field
+    document.getElementById('template_config_json').value = JSON.stringify(templateConfig);
+    
+    // Update preview
+    document.getElementById('json-preview').textContent = JSON.stringify(templateConfig, null, 2);
+    
+    return true;
+}
+
+function updateJsonPreview() {
+    // Update preview when form changes
+    const form = document.getElementById('template-creation-form');
+    if (form) {
+        const inputs = form.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('input', function() {
+                buildTemplateConfig();
+            });
+        });
+    }
+}
+
+// Build config before form submission
+document.addEventListener('htmx:configRequest', function(evt) {
+    if (evt.detail.target.id === 'template-form-container') {
+        if (!buildTemplateConfig()) {
+            evt.preventDefault();
+        }
+    }
+});
+
+// Show loading indicator on form submit
+document.body.addEventListener('htmx:beforeRequest', function(evt) {
+    if (evt.detail.target.id === 'template-form-container') {
+        const indicator = document.getElementById('template-loading-indicator');
+        if (indicator) {
+            indicator.classList.remove('d-none');
+        }
+        const status = document.getElementById('template-save-status');
+        if (status) {
+            status.textContent = 'Creating...';
+        }
+    }
+});
+
+// Hide loading indicator after response
+document.body.addEventListener('htmx:afterSwap', function(evt) {
+    if (evt.detail.target.id === 'template-form-container') {
+        const indicator = document.getElementById('template-loading-indicator');
+        if (indicator) {
+            indicator.classList.add('d-none');
+        }
+        const status = document.getElementById('template-save-status');
+        if (status) {
+            status.textContent = 'Created!';
+            setTimeout(() => {
+                status.textContent = '';
+            }, 2000);
+        }
+        
+        // Reload the template list if form was successful
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('tab') === 'template') {
+            htmx.ajax('GET', '{% url "accounts:settings" %}?tab=template', {
+                target: '#settings-tab-content',
+                swap: 'innerHTML'
+            });
+        }
+    }
+});
+</script>
+{% endif %}

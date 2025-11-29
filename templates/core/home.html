@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - SaaS Platform{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="text-center mb-5" style="padding-top: 2rem;">
+            <h1 class="display-4 mb-4">Deploy Your SaaS Products</h1>
+            <p class="lead mb-5">
+                A platform for deploying and managing your SaaS applications.
+            </p>
+            
+            {% if not user.is_authenticated %}
+                <div class="d-flex flex-column align-items-center gap-3">
+                    <form method="post" action="/accounts/google/login/?process=signup" onclick="this.submit()" style="cursor: pointer;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary btn-lg" style="display: flex; align-items: center; justify-content: center; gap: 0.75rem; pointer-events: none;">
+                            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiB4PSIwIiB5PSIwIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgNTEyIDUxMiIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgY2xhc3M9IiI+PGc+PHBhdGggZD0iTTExMy40NyAzMDkuNDA4IDk1LjY0OCAzNzUuOTlsLTY1LjEzOSAxLjM3OEMxMS4wNDIgMzQxLjIxMSAwIDI5OS45IDAgMjU2YzAtNDIuNDUxIDEwLjMyNC04Mi40ODMgMjguNjI0LTExNy43MzJoLjAxNEw4Ni42MyAxNDguOWwyNS40MDQgNTcuNjQ0Yy01LjMxNyAxNS41MDEtOC4yMTUgMzIuMTQxLTguMjE1IDQ5LjQ1Ni4wMDIgMTguNzkyIDMuNDA2IDM2Ljc5NyA5LjY1MSA1My40MDh6IiBzdHlsZT0iIiBmaWxsPSIjZmJiYjAwIiBkYXRhLW9yaWdpbmFsPSIjZmJiYjAwIj48L3BhdGg+PHBhdGggZD0iTTUwNy41MjcgMjA4LjE3NkM1MTAuNDY3IDIyMy42NjIgNTEyIDIzOS42NTUgNTEyIDI1NmMwIDE4LjMyOC0xLjkyNyAzNi4yMDYtNS41OTggNTMuNDUxLTEyLjQ2MiA1OC42ODMtNDUuMDI1IDEwOS45MjUtOTAuMTM0IDE0Ni4xODdsLS4wMTQtLjAxNC03My4wNDQtMy43MjctMTAuMzM4LTY0LjUzNWMyOS45MzItMTcuNTU0IDUzLjMyNC00NS4wMjUgNjUuNjQ2LTc3LjkxMWgtMTM2Ljg5VjIwOC4xNzZoMjQ1Ljg5OXoiIHN0eWxlPSIiIGZpbGw9IiM1MThlZjgiIGRhdGEtb3JpZ2luYWw9IiM1MThlZjgiPjwvcGF0aD48cGF0aCBkPSJtNDE2LjI1MyA0NTUuNjI0LjAxNC4wMTRDMzcyLjM5NiA0OTAuOTAxIDMxNi42NjYgNTEyIDI1NiA1MTJjLTk3LjQ5MSAwLTE4Mi4yNTItNTQuNDkxLTIyNS40OTEtMTM0LjY4MWw4Mi45NjEtNjcuOTFjMjEuNjE5IDU3LjY5OCA3Ny4yNzggOTguNzcxIDE0Mi41MyA5OC43NzEgMjguMDQ3IDAgNTQuMzIzLTcuNTgyIDc2Ljg3LTIwLjgxOGw4My4zODMgNjguMjYyeiIgc3R5bGU9IiIgZmlsbD0iIzI4YjQ0NiIgZGF0YS1vcmlnaW5hbD0iIzI4YjQ0NiI+PC9wYXRoPjxwYXRoIGQ9Im00MTkuNDA0IDU4LjkzNi04Mi45MzMgNjcuODk2QzMxMy4xMzYgMTEyLjI0NiAyODUuNTUyIDEwMy44MiAyNTYgMTAzLjgyYy02Ni43MjkgMC0xMjMuNDI5IDQyLjk1Ny0xNDMuOTY1IDEwMi43MjRsLTgzLjM5Ny02OC4yNzZoLS4wMTRDNzEuMjMgNTYuMTIzIDE1Ny4wNiAwIDI1NiAwYzYyLjExNSAwIDExOS4wNjggMjIuMTI2IDE2My40MDQgNTguOTM2eiIgc3R5bGU9IiIgZmlsbD0iI2YxNDMzNiIgZGF0YS1vcmlnaW5hbD0iIzI4YjQ0NiIgY2xhc3M9IiI+PC9wYXRoPjwvZz48L3N2Zz4=" alt="Google" style="width: 20px; height: 20px;" />
+                            Continue with Google
+                        </button>
+                    </form>
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <a href="{% url 'accounts:login' %}" 
+                           hx-get="{% url 'accounts:login' %}" 
+                           hx-target="#main-content" 
+                           hx-swap="innerHTML"
+                           style="color: var(--gray-600); text-decoration: underline; font-size: 0.875rem;">
+                            Sign In
+                        </a>
+                        <span style="color: var(--gray-400);">•</span>
+                        <a href="{% url 'accounts:register' %}" 
+                           hx-get="{% url 'accounts:register' %}" 
+                           hx-target="#main-content" 
+                           hx-swap="innerHTML"
+                           style="color: var(--gray-600); text-decoration: underline; font-size: 0.875rem;">
+                            Sign Up
+                        </a>
+                    </div>
+                </div>
+            {% else %}
+                <a href="{% url 'core:dashboard' %}" class="btn btn-primary btn-lg">
+                    Go to Dashboard
+                </a>
+            {% endif %}
+        </div>
+
+        <div class="row mt-5" style="margin-top: 5rem !important;">
+            <div class="col-md-4 mb-4">
+                <div class="feature-card h-100">
+                    <h4>Deployment</h4>
+                    <p>Deploy your SaaS products quickly and efficiently.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card h-100">
+                    <h4>Reliability</h4>
+                    <p>Built for performance and reliability at scale.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card h-100">
+                    <h4>Security</h4>
+                    <p>Enterprise-grade security for your applications.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

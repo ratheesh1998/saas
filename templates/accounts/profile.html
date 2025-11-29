@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile - SaaS Platform{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="mb-4">Profile</h2>
+                
+                <div class="mb-4">
+                    <label class="form-label">Email</label>
+                    <p style="color: var(--black); margin-top: 0.5rem;">{{ user.email }}</p>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label">Username</label>
+                    <p style="color: var(--black); margin-top: 0.5rem;">{{ user.username }}</p>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label">Date Joined</label>
+                    <p style="color: var(--black); margin-top: 0.5rem;">{{ user.date_joined|date:"F d, Y" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

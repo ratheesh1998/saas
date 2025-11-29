@@ -1,0 +1,7 @@
+Pillow
+Django==5.0.1
+django-allauth==0.57.0
+django-crispy-forms==2.1
+crispy-bootstrap5==0.7
+python-decouple==3.8
+
