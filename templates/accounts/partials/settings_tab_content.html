@@ -19,8 +19,10 @@
 <div id="template-content">
     {% if template_action == 'create' or template_action == 'architecture' or template_action == 'settings' %}
         <!-- Template Editor (Full Grid View) -->
-        <div id="template-form-container" style="width: 100%; min-height: calc(100vh - 150px); padding: 0; margin: 0;">
-            {% include 'accounts/partials/template_editor.html' %}
+        <div id="template-content-editor-wrapper" style="width: 100%; height: calc(100vh - var(--navbar-height, 70px)); padding: 0; margin: 0; position: relative;">
+            <div id="template-form-container" style="width: 100%; height: 100%; padding: 0; margin: 0;">
+                {% include 'accounts/partials/template_editor.html' %}
+            </div>
         </div>
     {% else %}
         <!-- Templates List View -->

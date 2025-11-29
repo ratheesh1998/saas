@@ -37,23 +37,24 @@
         <div class="offcanvas offcanvas-end" tabindex="-1" id="service-offcanvas" aria-labelledby="service-offcanvas-label" data-bs-backdrop="true" data-bs-scroll="true">
             <div class="offcanvas-header border-bottom">
                 <div class="d-flex align-items-center flex-grow-1">
-                    <i class="bi bi-box service-offcanvas-icon me-2" id="offcanvas-service-icon"></i>
+                    <i class="bi bi-box service-offcanvas-icon me-3" id="offcanvas-service-icon" style="font-size: 1.5rem;"></i>
                     <div class="flex-grow-1">
                         <input 
                             type="text" 
-                            class="form-control form-control-sm d-inline-block w-auto" 
+                            class="offcanvas-title-input" 
                             id="offcanvas-service-name-input" 
                             value="Service Name"
-                            style="background: transparent; border: none; color: #ffffff; font-size: 1.25rem; font-weight: 600; padding: 0;"
+                            placeholder="Enter service name"
                             onchange="updateServiceName(this.value)"
-                            onblur="updateServiceName(this.value)">
+                            onfocus="this.classList.add('editing')"
+                            onblur="this.classList.remove('editing'); updateServiceName(this.value);">
                     </div>
                 </div>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                <button type="button" class="btn-close ms-3" data-bs-dismiss="offcanvas" aria-label="Close" onclick="if(typeof hideOffcanvasFallback === 'function') { hideOffcanvasFallback(); } else if(typeof bootstrap !== 'undefined' && bootstrap.Offcanvas) { const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('service-offcanvas')); if(offcanvas) offcanvas.hide(); }"></button>
             </div>
             <div class="offcanvas-body p-0">
                 <!-- Service Tabs -->
-                <ul class="nav nav-tabs border-bottom px-3" id="service-tabs" role="tablist">
+                <ul class="nav nav-tabs border-bottom px-4 pt-3" id="service-tabs" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview-pane" type="button" role="tab">
                             Overview
@@ -72,33 +73,33 @@
                 </ul>
                 
                 <!-- Tab Content -->
-                <div class="tab-content p-3" id="service-tab-content">
+                <div class="tab-content px-4 py-4" id="service-tab-content">
                     <!-- Overview Tab -->
                     <div class="tab-pane fade show active" id="overview-pane" role="tabpanel">
-                        <div class="mb-4">
-                            <h6 class="mb-3"><i class="bi bi-code-square me-2"></i> Source</h6>
-                            <div class="card bg-light">
-                                <div class="card-body">
+                        <div class="mb-5">
+                            <h6 class="mb-4 fw-semibold"><i class="bi bi-code-square me-2"></i> Source</h6>
+                            <div class="card" style="background-color: var(--gray-50, #fafafa); border: 1px solid var(--gray-200, #e5e5e5);">
+                                <div class="card-body p-4">
                                     <div class="d-flex align-items-center justify-content-between">
                                         <div class="d-flex align-items-center">
-                                            <i class="bi bi-box me-2" style="font-size: 1.5rem;"></i>
+                                            <i class="bi bi-box me-3" style="font-size: 1.75rem; color: var(--gray-600);"></i>
                                             <div>
-                                                <div class="fw-bold" id="offcanvas-service-name">Service Name</div>
+                                                <div class="fw-bold mb-1" id="offcanvas-service-name" style="font-size: 1rem;">Service Name</div>
                                                 <small class="text-muted" id="offcanvas-service-image">No image</small>
                                             </div>
                                         </div>
                                         <button type="button" class="btn btn-sm btn-outline-secondary" onclick="editServiceSource()">
-                                            <i class="bi bi-pencil"></i>
+                                            <i class="bi bi-pencil me-1"></i> Edit
                                         </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="mb-4">
-                            <h6 class="mb-3"><i class="bi bi-slash-circle me-2"></i> Environment Variables</h6>
-                            <div id="offcanvas-variables-list">
-                                <p class="text-muted">No variables added to this service.</p>
+                        <div class="mb-5">
+                            <h6 class="mb-4 fw-semibold"><i class="bi bi-slash-circle me-2"></i> Environment Variables</h6>
+                            <div id="offcanvas-variables-list" class="mb-3">
+                                <p class="text-muted mb-0">No variables added to this service.</p>
                             </div>
                             <button type="button" class="btn btn-primary btn-sm" onclick="addVariable()">
                                 <i class="bi bi-plus-circle me-1"></i> Add variables
@@ -106,8 +107,8 @@
                         </div>
                         
                         <div class="mb-4">
-                            <h6 class="mb-3"><i class="bi bi-gear me-2"></i> Service Settings</h6>
-                            <p class="text-muted">No settings have been configured for this service.</p>
+                            <h6 class="mb-4 fw-semibold"><i class="bi bi-gear me-2"></i> Service Settings</h6>
+                            <p class="text-muted mb-3">No settings have been configured for this service.</p>
                             <button type="button" class="btn btn-primary btn-sm" onclick="showSettingsTab()">
                                 <i class="bi bi-pencil me-1"></i> Edit settings
                             </button>
@@ -116,8 +117,8 @@
                     
                     <!-- Variables Tab -->
                     <div class="tab-pane fade" id="variables-pane" role="tabpanel">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="mb-0">Service Variables</h6>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h6 class="mb-0 fw-semibold">Service Variables</h6>
                             <div>
                                 <button type="button" class="btn btn-sm btn-outline-secondary me-2" onclick="toggleRawEditor()">
                                     <i class="bi bi-code me-1"></i> Raw Editor
@@ -140,20 +141,20 @@
                     
                     <!-- Settings Tab -->
                     <div class="tab-pane fade" id="settings-pane" role="tabpanel">
-                        <div class="mb-4">
-                            <h6 class="mb-3"><i class="bi bi-code-square me-2"></i> Source</h6>
+                        <div class="mb-5">
+                            <h6 class="mb-4 fw-semibold"><i class="bi bi-code-square me-2"></i> Source</h6>
                             <div class="mb-3">
-                                <label class="form-label">Source Image</label>
+                                <label class="form-label fw-medium mb-2">Source Image</label>
                                 <input type="text" class="form-control" id="service-source-image" placeholder="e.g., docker-image:tag or ghcr.io/..." onchange="autoSaveService()">
-                                <small class="form-text text-muted">Configure auto updates</small>
+                                <small class="form-text text-muted mt-2 d-block">Configure auto updates</small>
                             </div>
                         </div>
                         
-                        <div class="mb-4">
-                            <h6 class="mb-3"><i class="bi bi-wifi me-2"></i> Networking</h6>
+                        <div class="mb-5">
+                            <h6 class="mb-4 fw-semibold"><i class="bi bi-wifi me-2"></i> Networking</h6>
                             <div class="mb-3">
-                                <label class="form-label">Public Networking</label>
-                                <p class="text-muted small">Make this service publicly accessible via HTTP, TCP, or both.</p>
+                                <label class="form-label fw-medium mb-2">Public Networking</label>
+                                <p class="text-muted small mb-3">Make this service publicly accessible via HTTP, TCP, or both.</p>
                                 <div class="d-flex gap-2">
                                     <button type="button" class="btn btn-outline-primary btn-sm" onclick="addHttpProxy()">
                                         <i class="bi bi-plus me-1"></i> HTTP Proxy
@@ -166,14 +167,14 @@
                         </div>
                         
                         <div class="mb-4">
-                            <h6 class="mb-3"><i class="bi bi-rocket me-2"></i> Deploy</h6>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">CPU</label>
+                            <h6 class="mb-4 fw-semibold"><i class="bi bi-rocket me-2"></i> Deploy</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-medium mb-2">CPU</label>
                                     <input type="number" class="form-control" id="service-cpu" value="8" min="1" max="32" onchange="autoSaveService()">
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Memory (GB)</label>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-medium mb-2">Memory (GB)</label>
                                     <input type="number" class="form-control" id="service-memory" value="8" min="1" max="32" onchange="autoSaveService()">
                                 </div>
                             </div>
@@ -286,6 +287,53 @@
 <script>
 let serviceCounter = 0;
 let services = {};
+let cardDragData = new Map(); // Store drag state per card - initialize early
+let draggedElement = null;
+let dragOffset = { x: 0, y: 0 };
+let dragStartPos = { x: 0, y: 0 };
+let isDragging = false;
+let dragThreshold = 5; // pixels to move before drag starts
+
+// Handle card click - define early so it's available globally
+function handleCardClick(serviceId, event) {
+    console.log('handleCardClick called for:', serviceId);
+    
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    
+    // Check if we were dragging
+    const cardElement = document.querySelector(`[data-service-id="${serviceId}"]`);
+    if (cardElement && cardDragData) {
+        const dragData = cardDragData.get(cardElement);
+        // Only prevent if we actually dragged
+        if (dragData && dragData.hasMoved) {
+            console.log('Click ignored - card was dragged');
+            dragData.hasMoved = false;
+            return;
+        }
+    }
+    
+    // Open the service details - check if function exists
+    if (typeof openServiceDetails === 'function') {
+        console.log('Calling openServiceDetails');
+        openServiceDetails(serviceId);
+    } else {
+        console.error('openServiceDetails function not found');
+        // Fallback - try to call it later
+        setTimeout(() => {
+            if (typeof openServiceDetails === 'function') {
+                openServiceDetails(serviceId);
+            } else {
+                console.error('openServiceDetails still not available');
+            }
+        }, 100);
+    }
+}
+
+// Make it globally available immediately
+window.handleCardClick = handleCardClick;
 
 function showTab(tabName) {
     // Hide all tabs
@@ -358,6 +406,9 @@ function addServiceCard() {
     }
     
     // Create service object
+    const initialX = Math.random() * 300 + 50;
+    const initialY = Math.random() * 200 + 100;
+    
     services[serviceId] = {
         id: serviceId,
         name: 'New Service',
@@ -368,12 +419,19 @@ function addServiceCard() {
         networking: {
             http: false,
             tcp: false
+        },
+        position: {
+            x: initialX,
+            y: initialY
         }
     };
     
     // Create service card HTML (Railway style)
+    const service = services[serviceId];
     const cardHtml = `
-        <div class="service-card railway-card" data-service-id="${serviceId}">
+        <div class="service-card railway-card" 
+             data-service-id="${serviceId}"
+             style="left: ${service.position.x}px; top: ${service.position.y}px;">
             <button 
                 type="button" 
                 class="btn btn-sm btn-link text-danger p-0 btn-remove"
@@ -381,7 +439,10 @@ function addServiceCard() {
                 title="Remove service">
                 <i class="bi bi-x-lg"></i>
             </button>
-            <div class="service-card-content" onclick="openServiceDetails('${serviceId}')" style="cursor: pointer;">
+            <div class="service-card-drag-handle" title="Drag to move">
+                <i class="bi bi-grip-vertical"></i>
+            </div>
+            <div class="service-card-content" onclick="handleCardClick('${serviceId}', event)">
                 <i class="bi bi-box service-card-icon"></i>
                 <div class="service-card-info">
                     <div class="service-card-name">New Service</div>
@@ -396,11 +457,25 @@ function addServiceCard() {
     `;
     
     canvas.insertAdjacentHTML('beforeend', cardHtml);
+    
+    // Make card draggable
+    const cardElement = canvas.querySelector(`[data-service-id="${serviceId}"]`);
+    makeCardDraggable(cardElement, serviceId);
+    
     updateEmptyState();
 }
 
 function openServiceDetails(serviceId) {
-    console.log('Opening service details for:', serviceId);
+    // Prevent multiple simultaneous calls
+    if (isDragging) {
+        return;
+    }
+    
+    // Prevent duplicate calls
+    if (currentServiceId === serviceId && document.getElementById('service-offcanvas')?.classList.contains('show')) {
+        return;
+    }
+    
     currentServiceId = serviceId;
     const service = services[serviceId];
     
@@ -448,41 +523,150 @@ function openServiceDetails(serviceId) {
     // Show offcanvas
     const offcanvasEl = document.getElementById('service-offcanvas');
     if (!offcanvasEl) {
-        console.error('Offcanvas element not found');
-        alert('Offcanvas element not found. Please refresh the page.');
+        console.error('Offcanvas element not found - make sure the template editor is fully loaded');
         return;
     }
     
-    // Wait for Bootstrap to be available
+    console.log('Opening offcanvas for service:', serviceId, 'Element found:', !!offcanvasEl);
+    
+    // Function to show offcanvas
     function showOffcanvas() {
+        console.log('showOffcanvas called');
+        console.log('Bootstrap available:', typeof bootstrap !== 'undefined');
+        console.log('Bootstrap.Offcanvas available:', typeof bootstrap !== 'undefined' && typeof bootstrap.Offcanvas !== 'undefined');
+        
         if (typeof bootstrap !== 'undefined' && bootstrap.Offcanvas) {
             try {
-                // Get existing instance or create new one
+                console.log('Using Bootstrap Offcanvas API');
+                
+                // Get or create offcanvas instance
                 let offcanvas = bootstrap.Offcanvas.getInstance(offcanvasEl);
                 if (!offcanvas) {
-                    offcanvas = new bootstrap.Offcanvas(offcanvasEl);
+                    console.log('Creating new Offcanvas instance');
+                    offcanvas = new bootstrap.Offcanvas(offcanvasEl, {
+                        backdrop: true,
+                        scroll: true
+                    });
                 }
+                
+                // Show it
+                console.log('Calling offcanvas.show()');
                 offcanvas.show();
+                
+                // Verify it's showing
+                setTimeout(() => {
+                    const isShowing = offcanvasEl.classList.contains('show');
+                    console.log('Offcanvas showing:', isShowing);
+                    if (!isShowing) {
+                        console.error('Offcanvas failed to show, trying fallback');
+                        showOffcanvasFallback();
+                    }
+                }, 200);
             } catch (e) {
-                console.error('Error showing offcanvas:', e);
-                // Fallback: show manually
-                offcanvasEl.classList.add('show');
-                offcanvasEl.style.visibility = 'visible';
-                offcanvasEl.style.transform = 'translateX(0)';
-                document.body.style.overflow = 'hidden';
-                // Add backdrop
-                const backdrop = document.createElement('div');
-                backdrop.className = 'offcanvas-backdrop fade show';
-                backdrop.id = 'offcanvas-backdrop';
-                document.body.appendChild(backdrop);
+                console.error('Error showing offcanvas with Bootstrap:', e);
+                showOffcanvasFallback();
             }
         } else {
-            // Bootstrap not loaded yet, try again after a short delay
-            setTimeout(showOffcanvas, 100);
+            console.log('Bootstrap not available, using fallback');
+            showOffcanvasFallback();
         }
     }
     
-    showOffcanvas();
+    // Fallback method to show offcanvas manually
+    function showOffcanvasFallback() {
+        console.log('Using fallback method to show offcanvas');
+        
+        // Remove existing backdrop
+        const existingBackdrop = document.querySelector('.offcanvas-backdrop');
+        if (existingBackdrop) {
+            existingBackdrop.remove();
+        }
+        
+        // Get navbar height
+        const navbar = document.querySelector('.navbar');
+        const navbarHeight = navbar ? navbar.offsetHeight : 70;
+        
+        // Ensure offcanvas is positioned correctly
+        offcanvasEl.style.position = 'fixed';
+        offcanvasEl.style.top = navbarHeight + 'px';
+        offcanvasEl.style.right = '0';
+        offcanvasEl.style.bottom = 'auto';
+        offcanvasEl.style.left = 'auto';
+        offcanvasEl.style.width = '50%';
+        offcanvasEl.style.maxWidth = 'none';
+        offcanvasEl.style.height = `calc(100vh - ${navbarHeight}px)`;
+        offcanvasEl.style.visibility = 'visible';
+        offcanvasEl.style.display = 'block';
+        offcanvasEl.style.zIndex = '1055';
+        offcanvasEl.style.transition = 'transform 0.3s ease-in-out';
+        
+        // First set it off-screen
+        offcanvasEl.style.transform = 'translateX(100%)';
+        offcanvasEl.classList.remove('show');
+        
+        // Force reflow
+        void offcanvasEl.offsetHeight;
+        
+        // Then animate it in
+        setTimeout(() => {
+            offcanvasEl.classList.add('show');
+            offcanvasEl.style.transform = 'translateX(0)';
+        }, 10);
+        
+        // Add body classes
+        document.body.classList.add('modal-open', 'offcanvas-open');
+        document.body.style.overflow = 'hidden';
+        document.body.style.paddingRight = '0px';
+        
+        // Add backdrop first
+        const backdrop = document.createElement('div');
+        backdrop.className = 'offcanvas-backdrop fade show';
+        backdrop.style.position = 'fixed';
+        backdrop.style.top = '0';
+        backdrop.style.left = '0';
+        backdrop.style.width = '100vw';
+        backdrop.style.height = '100vh';
+        backdrop.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+        backdrop.style.zIndex = '1040';
+        backdrop.style.transition = 'opacity 0.15s linear';
+        backdrop.setAttribute('data-bs-backdrop', 'true');
+        backdrop.addEventListener('click', function() {
+            hideOffcanvasFallback();
+        });
+        document.body.appendChild(backdrop);
+        
+        // Force a reflow to ensure styles are applied
+        offcanvasEl.offsetHeight;
+        
+        console.log('Fallback offcanvas should now be visible');
+    }
+    
+    // Function to hide offcanvas (fallback)
+    function hideOffcanvasFallback() {
+        offcanvasEl.classList.remove('show');
+        offcanvasEl.style.transform = 'translateX(100%)';
+        
+        setTimeout(() => {
+            offcanvasEl.style.display = 'none';
+            document.body.classList.remove('modal-open', 'offcanvas-open');
+            document.body.style.overflow = '';
+            const backdrop = document.querySelector('.offcanvas-backdrop');
+            if (backdrop) {
+                backdrop.remove();
+            }
+        }, 300); // Wait for transition
+    }
+    
+    // Make hide function globally available for close button
+    window.hideOffcanvasFallback = hideOffcanvasFallback;
+    
+    // Wait a bit for DOM to be ready, then show
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', showOffcanvas);
+    } else {
+        // DOM is already ready
+        setTimeout(showOffcanvas, 50);
+    }
 }
 
 function updateServiceName(name) {
@@ -807,13 +991,240 @@ function saveTemplate() {
     }
 }
 
+// Calculate navbar height and set CSS variable
+function setNavbarHeight() {
+    const navbar = document.querySelector('.navbar');
+    if (navbar) {
+        const navbarHeight = navbar.offsetHeight;
+        document.documentElement.style.setProperty('--navbar-height', navbarHeight + 'px');
+    }
+}
+
+// Drag and drop functionality
+// Variables are already declared at the top of the script
+
+function makeCardDraggable(cardElement, serviceId) {
+    const service = services[serviceId];
+    if (service && service.position) {
+        cardElement.style.left = service.position.x + 'px';
+        cardElement.style.top = service.position.y + 'px';
+    }
+    
+    // Store card-specific drag state
+    cardDragData.set(cardElement, {
+        mousedownTime: 0,
+        mousedownPos: { x: 0, y: 0 },
+        hasMoved: false
+    });
+    
+    // Make drag handle draggable
+    const dragHandle = cardElement.querySelector('.service-card-drag-handle');
+    if (dragHandle) {
+        dragHandle.addEventListener('mousedown', function(e) {
+            e.stopPropagation();
+            const dragData = cardDragData.get(cardElement);
+            dragData.mousedownTime = Date.now();
+            dragData.mousedownPos.x = e.clientX;
+            dragData.mousedownPos.y = e.clientY;
+            dragData.hasMoved = false;
+            
+            draggedElement = cardElement;
+            isDragging = false;
+            
+            const rect = cardElement.getBoundingClientRect();
+            dragOffset.x = e.clientX - rect.left;
+            dragOffset.y = e.clientY - rect.top;
+            dragStartPos.x = e.clientX;
+            dragStartPos.y = e.clientY;
+        });
+    }
+    
+    // Also allow dragging from the card itself, but track it
+    cardElement.addEventListener('mousedown', function(e) {
+        // Don't start drag if clicking on remove button or content area
+        if (e.target.closest('.btn-remove') || e.target.closest('.service-card-content')) {
+            return;
+        }
+        
+        const dragData = cardDragData.get(cardElement);
+        dragData.mousedownTime = Date.now();
+        dragData.mousedownPos.x = e.clientX;
+        dragData.mousedownPos.y = e.clientY;
+        dragData.hasMoved = false;
+        
+        draggedElement = cardElement;
+        isDragging = false;
+        
+        const rect = cardElement.getBoundingClientRect();
+        dragOffset.x = e.clientX - rect.left;
+        dragOffset.y = e.clientY - rect.top;
+        dragStartPos.x = e.clientX;
+        dragStartPos.y = e.clientY;
+    });
+    
+    // Content area already has onclick handler from HTML
+}
+
+// Cache for drag performance
+let canvasRectCache = null;
+let cardSizeCache = { width: 0, height: 0 };
+let basePosition = { x: 0, y: 0 };
+
+// Global mouse move handler for dragging - optimized for smoothness
+function handleMouseMove(e) {
+    if (!draggedElement) return;
+    
+    const deltaX = Math.abs(e.clientX - dragStartPos.x);
+    const deltaY = Math.abs(e.clientY - dragStartPos.y);
+    
+    // Check if movement exceeds threshold
+    if (!isDragging && (deltaX > dragThreshold || deltaY > dragThreshold)) {
+        isDragging = true;
+        draggedElement.classList.add('dragging');
+        
+        // Store base position when drag starts
+        basePosition.x = parseFloat(draggedElement.style.left) || 0;
+        basePosition.y = parseFloat(draggedElement.style.top) || 0;
+        
+        // Cache canvas rect and card size once when drag starts
+        const canvas = document.getElementById('services-canvas');
+        if (canvas) {
+            canvasRectCache = canvas.getBoundingClientRect();
+            cardSizeCache.width = draggedElement.offsetWidth;
+            cardSizeCache.height = draggedElement.offsetHeight;
+        }
+        
+        // Mark that this card has moved - prevent click
+        const dragData = cardDragData.get(draggedElement);
+        if (dragData) {
+            dragData.hasMoved = true;
+        }
+        
+        // Disable click when dragging starts
+        const cardContent = draggedElement.querySelector('.service-card-content');
+        if (cardContent) {
+            cardContent.dataset.dragging = 'true';
+        }
+    }
+    
+    if (!isDragging) return;
+    
+    e.preventDefault();
+    
+    if (!canvasRectCache) return;
+    
+    // Calculate new position relative to canvas
+    let newX = e.clientX - canvasRectCache.left - dragOffset.x;
+    let newY = e.clientY - canvasRectCache.top - dragOffset.y;
+    
+    // Constrain to canvas bounds
+    const maxX = canvasRectCache.width - cardSizeCache.width;
+    const maxY = canvasRectCache.height - cardSizeCache.height;
+    
+    newX = Math.max(0, Math.min(newX, maxX));
+    newY = Math.max(0, Math.min(newY, maxY));
+    
+    // Calculate transform offset from base position - use transform for smooth GPU-accelerated movement
+    const translateX = newX - basePosition.x;
+    const translateY = newY - basePosition.y;
+    
+    // Apply transform directly - this is GPU accelerated and smooth
+    draggedElement.style.transform = `translate3d(${translateX}px, ${translateY}px, 0)`;
+}
+
+document.addEventListener('mousemove', handleMouseMove);
+
+document.addEventListener('mouseup', function(e) {
+    const wasDragging = isDragging;
+    
+    if (draggedElement) {
+        // Finalize position - update left/top and clear transform
+        if (wasDragging) {
+            const canvas = document.getElementById('services-canvas');
+            if (canvas && canvasRectCache) {
+                // Calculate final position
+                let finalX = e.clientX - canvasRectCache.left - dragOffset.x;
+                let finalY = e.clientY - canvasRectCache.top - dragOffset.y;
+                
+                // Constrain to canvas bounds
+                const maxX = canvasRectCache.width - cardSizeCache.width;
+                const maxY = canvasRectCache.height - cardSizeCache.height;
+                
+                finalX = Math.max(0, Math.min(finalX, maxX));
+                finalY = Math.max(0, Math.min(finalY, maxY));
+                
+                // Update base position and clear transform
+                draggedElement.style.left = finalX + 'px';
+                draggedElement.style.top = finalY + 'px';
+                draggedElement.style.transform = '';
+                
+                // Update service position
+                const serviceId = draggedElement.getAttribute('data-service-id');
+                if (serviceId && services[serviceId]) {
+                    services[serviceId].position = { x: finalX, y: finalY };
+                }
+            }
+        }
+        
+        // Clean up drag state
+        const cardContent = draggedElement.querySelector('.service-card-content');
+        if (cardContent) {
+            delete cardContent.dataset.dragging;
+        }
+        
+        draggedElement.classList.remove('dragging');
+        
+        // Clear caches
+        canvasRectCache = null;
+        cardSizeCache = { width: 0, height: 0 };
+        basePosition = { x: 0, y: 0 };
+        
+        // If we were dragging, mark it so click doesn't fire
+        if (wasDragging) {
+            const dragData = cardDragData.get(draggedElement);
+            if (dragData) {
+                dragData.hasMoved = true;
+            }
+        } else {
+            // If we weren't dragging, reset so click can work
+            const dragData = cardDragData.get(draggedElement);
+            if (dragData) {
+                dragData.hasMoved = false;
+            }
+        }
+        
+        // Clear dragged element after a small delay to allow click
+        setTimeout(() => {
+            draggedElement = null;
+            isDragging = false;
+        }, 100);
+    } else {
+        isDragging = false;
+    }
+});
+
+// This function is already defined above - this is just to ensure it's available
+
 // Initialize empty state on load and hide sidebar
 document.addEventListener('DOMContentLoaded', function() {
+    setNavbarHeight();
     updateEmptyState();
     hideSidebar();
     
-    // Make sure openServiceDetails is globally accessible
+    // Recalculate navbar height on resize
+    window.addEventListener('resize', setNavbarHeight);
+    
+    // Make existing cards draggable (if any)
+    document.querySelectorAll('.service-card').forEach(card => {
+        const serviceId = card.getAttribute('data-service-id');
+        if (serviceId) {
+            makeCardDraggable(card, serviceId);
+        }
+    });
+    
+    // Make sure functions are globally accessible
     window.openServiceDetails = openServiceDetails;
+    window.handleCardClick = handleCardClick;
     window.removeServiceCard = removeServiceCard;
     window.addServiceCard = addServiceCard;
     window.addVariable = addVariable;
@@ -834,6 +1245,8 @@ function hideSidebar() {
     const mainContent = document.getElementById('main-content-wrapper');
     const settingsMainContent = document.getElementById('settings-main-content');
     const settingsContainer = document.querySelector('.settings-container');
+    const mainContentContainer = document.getElementById('main-content');
+    const templateContent = document.getElementById('template-content');
     
     if (sidebar) sidebar.style.display = 'none';
     if (mainContent) {
@@ -843,9 +1256,21 @@ function hideSidebar() {
     }
     if (settingsMainContent) {
         settingsMainContent.style.padding = '0';
+        settingsMainContent.style.height = '100%';
+    }
+    if (templateContent) {
+        templateContent.classList.add('template-editor-mode');
+        templateContent.style.height = '100%';
     }
     if (settingsContainer) {
         settingsContainer.classList.add('template-editor-mode');
+    }
+    if (mainContentContainer) {
+        mainContentContainer.classList.add('template-editor-mode');
+        mainContentContainer.style.paddingTop = '0';
+        mainContentContainer.style.paddingBottom = '0';
+        mainContentContainer.style.marginTop = '0';
+        mainContentContainer.style.marginBottom = '0';
     }
 }
 
@@ -860,12 +1285,13 @@ hideSidebar();
     padding: 0;
     margin: 0;
     display: block;
+    overflow: hidden;
 }
 
 .services-canvas-wrapper {
     position: relative;
     width: 100%;
-    min-height: calc(100vh - 150px);
+    height: 100%;
     display: block;
 }
 
@@ -882,44 +1308,60 @@ hideSidebar();
         linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
     background-size: 20px 20px;
     background-color: #0f0f0f;
-    border-radius: 8px;
+    border-radius: 0;
     padding: 2rem;
     padding-top: 4rem;
-    min-height: calc(100vh - 150px);
-    height: calc(100vh - 150px);
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.5rem;
+    height: 100%;
     position: relative;
     width: 100%;
     margin: 0;
+    overflow: hidden;
 }
 
 #architecture-tab {
     display: block !important;
     width: 100%;
     height: 100%;
-    min-height: calc(100vh - 150px);
 }
 
 .template-editor-full {
     width: 100%;
-    min-height: calc(100vh - 150px);
+    height: 100%;
 }
 
 .service-card {
     background: #1a1a1a;
     border: 2px solid #2d2d2d;
     border-radius: 8px;
-    padding: 1rem;
-    transition: all 0.2s;
-    cursor: pointer;
-    position: relative;
+    padding: 0.75rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    cursor: grab;
+    position: absolute;
+    width: 180px;
+    user-select: none;
+    z-index: 10;
+    will-change: transform;
+}
+
+.service-card:active {
+    cursor: grabbing;
+}
+
+.service-card.dragging {
+    transition: none;
+    will-change: transform;
+    pointer-events: none;
 }
 
 .service-card:hover {
     border-color: #6366f1;
-    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.service-card.dragging {
+    opacity: 0.8;
+    z-index: 1000;
+    cursor: grabbing;
 }
 
 .service-card.selected {
@@ -930,13 +1372,14 @@ hideSidebar();
 .service-card-content {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.25rem;
+    cursor: pointer;
 }
 
 .service-card-icon {
-    font-size: 2rem;
+    font-size: 1.25rem;
     color: #ffffff;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
 }
 
 .service-card-info {
@@ -946,29 +1389,58 @@ hideSidebar();
 .service-card-name {
     color: #ffffff;
     font-weight: 600;
-    font-size: 1rem;
-    margin-bottom: 0.25rem;
+    font-size: 0.875rem;
+    margin-bottom: 0.125rem;
 }
 
 .service-card-subtitle {
     color: #9ca3af;
-    font-size: 0.875rem;
+    font-size: 0.75rem;
 }
 
 .service-card-badge {
     display: flex;
     align-items: center;
     color: #9ca3af;
-    font-size: 0.75rem;
-    margin-top: 0.5rem;
+    font-size: 0.625rem;
+    margin-top: 0.25rem;
 }
 
 .service-card .btn-remove {
     position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
+    top: 0.25rem;
+    right: 0.25rem;
     opacity: 0;
     transition: opacity 0.2s;
+    z-index: 20;
+    background: rgba(26, 26, 26, 0.8);
+    border-radius: 4px;
+    padding: 0.25rem;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.service-card-drag-handle {
+    position: absolute;
+    top: 0.25rem;
+    left: 0.25rem;
+    color: #6c757d;
+    font-size: 0.875rem;
+    opacity: 0.5;
+    z-index: 15;
+    cursor: grab;
+}
+
+.service-card:hover .service-card-drag-handle {
+    opacity: 1;
+}
+
+.service-card.dragging .service-card-drag-handle {
+    opacity: 1;
+    color: #6366f1;
 }
 
 .service-card:hover .btn-remove {
@@ -1008,6 +1480,8 @@ hideSidebar();
     transform: translate(-50%, -50%);
     width: 100%;
     color: #ffffff;
+    pointer-events: none;
+    z-index: 1;
 }
 
 #empty-state .text-muted {
@@ -1015,86 +1489,289 @@ hideSidebar();
 }
 
 .offcanvas {
-    background-color: #1a1a1a;
-    color: #ffffff;
+    background-color: var(--white);
+    color: var(--black);
     width: 50% !important;
-    height: calc(100vh - 150px) !important;
-    top: auto !important;
+    max-width: none !important;
+    height: calc(100vh - var(--navbar-height, 70px)) !important;
+    position: fixed !important;
+    top: var(--navbar-height, 70px) !important;
+    right: 0 !important;
     bottom: auto !important;
+    left: auto !important;
+    z-index: 1055 !important;
+    transform: translateX(100%) !important;
+    transition: transform 0.3s ease-in-out !important;
+    border-left: 1px solid var(--gray-200);
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.offcanvas.show {
+    transform: translateX(0) !important;
 }
 
 .offcanvas-header {
-    background-color: #1a1a1a;
-    border-bottom-color: #2d2d2d !important;
+    background-color: var(--white);
+    border-bottom: 1px solid var(--gray-200) !important;
+    padding: 1.5rem 1.5rem 1.25rem 1.5rem;
+    min-height: 70px;
+}
+
+.offcanvas-title-input {
+    background-color: var(--white);
+    border: 1px solid var(--gray-300);
+    border-radius: 0;
+    color: var(--black);
+    font-size: 1.25rem;
+    font-weight: 600;
+    padding: 0.5rem 0.75rem;
+    width: 100%;
+    min-width: 200px;
+    transition: all 0.2s;
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+.offcanvas-title-input:not(.editing) {
+    border-color: transparent;
+    background-color: transparent;
+    padding-left: 0;
+    padding-right: 0;
+    cursor: pointer;
+}
+
+.offcanvas-title-input:not(.editing):hover {
+    border-bottom: 1px dashed var(--gray-300);
+    padding-bottom: 0.25rem;
+}
+
+.offcanvas-title-input.editing {
+    border-color: var(--black);
+    background-color: var(--white);
+    padding: 0.5rem 0.75rem;
+}
+
+.offcanvas-title-input:focus {
+    outline: none;
+    border-color: var(--black);
+    background-color: var(--white);
+    box-shadow: 0 0 0 1px var(--black);
 }
 
 .offcanvas-body {
-    background-color: #1a1a1a;
+    background-color: var(--white);
     overflow-y: auto;
-    max-height: calc(100vh - 250px);
+    max-height: calc(100vh - var(--navbar-height, 70px) - 70px);
+    color: var(--black);
+    padding: 0;
 }
 
 .nav-tabs {
-    border-bottom-color: #2d2d2d;
+    border-bottom: 1px solid var(--gray-200);
+    margin-bottom: 0;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    gap: 0.5rem;
+}
+
+.nav-tabs .nav-item {
+    margin-bottom: -1px;
 }
 
 .nav-tabs .nav-link {
-    color: #9ca3af;
+    color: var(--gray-700);
     border-color: transparent;
+    padding: 0.75rem 1rem;
+    border-radius: 0;
+    transition: all 0.2s;
+    font-weight: 400;
 }
 
 .nav-tabs .nav-link:hover {
     border-color: transparent;
-    color: #ffffff;
+    color: var(--black);
+    background-color: var(--gray-50);
 }
 
 .nav-tabs .nav-link.active {
-    color: #ffffff;
+    color: var(--black);
     background-color: transparent;
-    border-color: #2d2d2d #2d2d2d transparent;
+    border-color: var(--gray-200) var(--gray-200) transparent;
+    border-bottom-color: var(--white) !important;
+    font-weight: 500;
+    border-bottom-width: 2px;
 }
 
 .tab-content {
-    color: #ffffff;
+    color: var(--black);
+    min-height: 400px;
 }
 
-.form-control, .form-select {
-    background-color: #2d2d2d;
-    border-color: #3d3d3d;
-    color: #ffffff;
+#service-offcanvas h6 {
+    color: var(--black);
+    font-weight: 600;
+    font-size: 0.9375rem;
+    letter-spacing: -0.01em;
 }
 
-.form-control:focus, .form-select:focus {
-    background-color: #2d2d2d;
-    border-color: #6366f1;
-    color: #ffffff;
+#service-offcanvas h6 i {
+    color: var(--gray-600);
+}
+
+#service-offcanvas .card {
+    border-radius: 0;
+}
+
+#service-offcanvas .card-body {
+    padding: 1.5rem;
+}
+
+#service-offcanvas .form-control, 
+#service-offcanvas .form-select {
+    background-color: var(--white);
+    border: 1px solid var(--gray-300);
+    color: var(--black);
+    border-radius: 0;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.9375rem;
+    transition: border-color 0.2s;
+}
+
+#service-offcanvas .form-control:focus, 
+#service-offcanvas .form-select:focus {
+    background-color: var(--white);
+    border-color: var(--black);
+    color: var(--black);
+    box-shadow: none;
+    outline: none;
+}
+
+#service-offcanvas .form-label {
+    font-weight: 500;
+    color: var(--black);
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    display: block;
+}
+
+#service-offcanvas .form-text {
+    color: var(--gray-600);
+    font-size: 0.8125rem;
+    margin-top: 0.5rem;
 }
 
 .card {
-    background-color: #2d2d2d;
-    border-color: #3d3d3d;
+    background-color: var(--white);
+    border: 1px solid var(--gray-200);
 }
 
 .table {
-    color: #ffffff;
+    color: var(--black);
 }
 
 .table thead th {
-    border-color: #3d3d3d;
-    color: #9ca3af;
+    border-color: var(--gray-200);
+    color: var(--gray-700);
+    font-weight: 500;
 }
 
 .table tbody td {
-    border-color: #3d3d3d;
+    border-color: var(--gray-200);
 }
 
 .settings-section {
     max-width: 600px;
 }
 
+/* Offcanvas specific button styles */
+#service-offcanvas .btn-primary {
+    background-color: var(--black);
+    border-color: var(--black);
+    color: var(--white);
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+#service-offcanvas .btn-primary:hover {
+    background-color: var(--gray-900);
+    border-color: var(--gray-900);
+    color: var(--white);
+}
+
+#service-offcanvas .btn-outline-secondary {
+    border-color: var(--gray-300);
+    color: var(--black);
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+#service-offcanvas .btn-outline-secondary:hover {
+    background-color: var(--gray-200);
+    border-color: var(--gray-300);
+    color: var(--black);
+}
+
+#service-offcanvas .btn-outline-primary {
+    border-color: var(--black);
+    color: var(--black);
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+#service-offcanvas .btn-outline-primary:hover {
+    background-color: var(--black);
+    border-color: var(--black);
+    color: var(--white);
+}
+
+#service-offcanvas .btn-sm {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.8125rem;
+}
+
+#service-offcanvas .service-offcanvas-icon {
+    color: var(--black);
+}
+
+#service-offcanvas .gap-2 {
+    gap: 0.75rem !important;
+}
+
+/* Better spacing utilities for offcanvas */
+#service-offcanvas .mb-4 {
+    margin-bottom: 2rem !important;
+}
+
+#service-offcanvas .mb-5 {
+    margin-bottom: 3rem !important;
+}
+
+#service-offcanvas .mb-3 {
+    margin-bottom: 1.5rem !important;
+}
+
 @media (max-width: 768px) {
     .services-canvas {
         grid-template-columns: 1fr;
+    }
+    
+    .offcanvas {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    
+    #service-offcanvas .row {
+        margin-left: -0.5rem;
+        margin-right: -0.5rem;
+    }
+    
+    #service-offcanvas .row > * {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
     }
 }
 </style>

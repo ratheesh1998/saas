@@ -88,9 +88,35 @@
                 if (mainContent) {
                     mainContent.classList.remove('col-md-9');
                     mainContent.classList.add('col-12');
+                    mainContent.style.padding = '0';
+                }
+                const settingsMainContent = document.getElementById('settings-main-content');
+                if (settingsMainContent) {
+                    settingsMainContent.style.padding = '0';
+                    settingsMainContent.style.height = '100%';
+                }
+                const templateContent = document.getElementById('template-content');
+                if (templateContent) {
+                    templateContent.classList.add('template-editor-mode');
+                    templateContent.style.height = '100%';
                 }
                 if (settingsContainer) {
                     settingsContainer.classList.add('template-editor-mode');
+                }
+                // Remove container padding/margin from main-content
+                const mainContentContainer = document.getElementById('main-content');
+                if (mainContentContainer) {
+                    mainContentContainer.classList.add('template-editor-mode');
+                    mainContentContainer.style.paddingTop = '0';
+                    mainContentContainer.style.paddingBottom = '0';
+                    mainContentContainer.style.marginTop = '0';
+                    mainContentContainer.style.marginBottom = '0';
+                }
+                // Calculate navbar height
+                const navbar = document.querySelector('.navbar');
+                if (navbar) {
+                    const navbarHeight = navbar.offsetHeight;
+                    document.documentElement.style.setProperty('--navbar-height', navbarHeight + 'px');
                 }
             } else {
                 // Show sidebar and restore normal width
@@ -98,9 +124,29 @@
                 if (mainContent) {
                     mainContent.classList.remove('col-12');
                     mainContent.classList.add('col-md-9');
+                    mainContent.style.padding = '';
+                }
+                const settingsMainContent = document.getElementById('settings-main-content');
+                if (settingsMainContent) {
+                    settingsMainContent.style.padding = '';
+                    settingsMainContent.style.height = '';
+                }
+                const templateContent = document.getElementById('template-content');
+                if (templateContent) {
+                    templateContent.classList.remove('template-editor-mode');
+                    templateContent.style.height = '';
                 }
                 if (settingsContainer) {
                     settingsContainer.classList.remove('template-editor-mode');
+                }
+                // Restore container padding/margin
+                const mainContentContainer = document.getElementById('main-content');
+                if (mainContentContainer) {
+                    mainContentContainer.classList.remove('template-editor-mode');
+                    mainContentContainer.style.paddingTop = '';
+                    mainContentContainer.style.paddingBottom = '';
+                    mainContentContainer.style.marginTop = '';
+                    mainContentContainer.style.marginBottom = '';
                 }
             }
             
@@ -133,9 +179,35 @@
             if (mainContent) {
                 mainContent.classList.remove('col-md-9');
                 mainContent.classList.add('col-12');
+                mainContent.style.padding = '0';
+            }
+            const settingsMainContent = document.getElementById('settings-main-content');
+            if (settingsMainContent) {
+                settingsMainContent.style.padding = '0';
+                settingsMainContent.style.height = '100%';
+            }
+            const templateContent = document.getElementById('template-content');
+            if (templateContent) {
+                templateContent.classList.add('template-editor-mode');
+                templateContent.style.height = '100%';
             }
             if (settingsContainer) {
                 settingsContainer.classList.add('template-editor-mode');
+            }
+            // Remove container padding/margin from main-content
+            const mainContentContainer = document.getElementById('main-content');
+            if (mainContentContainer) {
+                mainContentContainer.classList.add('template-editor-mode');
+                mainContentContainer.style.paddingTop = '0';
+                mainContentContainer.style.paddingBottom = '0';
+                mainContentContainer.style.marginTop = '0';
+                mainContentContainer.style.marginBottom = '0';
+            }
+            // Calculate navbar height
+            const navbar = document.querySelector('.navbar');
+            if (navbar) {
+                const navbarHeight = navbar.offsetHeight;
+                document.documentElement.style.setProperty('--navbar-height', navbarHeight + 'px');
             }
         }
     });
@@ -171,9 +243,38 @@
     
     .settings-container.template-editor-mode {
         width: 100%;
+        height: calc(100vh - var(--navbar-height, 70px));
+        margin: 0;
+        padding: 0;
     }
     
     .settings-container.template-editor-mode .row {
         margin: 0;
+        height: 100%;
+    }
+    
+    #main-content.template-editor-mode {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+    
+    #main-content-wrapper.template-editor-mode {
+        padding: 0 !important;
+        height: 100%;
+    }
+    
+    #settings-main-content.template-editor-mode {
+        padding: 0 !important;
+        height: 100%;
+    }
+    
+    #template-content.template-editor-mode {
+        height: 100%;
+    }
+    
+    #template-content-editor-wrapper {
+        height: calc(100vh - var(--navbar-height, 70px));
     }
 </style>
