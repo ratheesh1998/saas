@@ -1,8 +1,10 @@
 # 🚀 SaaS Platform
 
-> **Build Your Own SaaS Business — Completely Free**
+> **Build Your Own SaaS Business — Platform is Free, Powered by Railway API**
 
-A powerful, open-source platform that enables you to create, deploy, and manage cloud-based projects as a service. Whether you're a solo entrepreneur or a growing business, this platform gives you the foundation to launch your own SaaS business without upfront costs.
+A powerful, open-source platform that enables you to create, deploy, and manage cloud-based projects as a service. Whether you're a solo entrepreneur or a growing business, this platform gives you the foundation to launch your own SaaS business.
+
+> 📢 **Note:** This platform is free to use. It integrates with [Railway API](https://railway.app/) for cloud deployments, which is a paid third-party service.
 
 ---
 
@@ -13,7 +15,8 @@ A powerful, open-source platform that enables you to create, deploy, and manage 
 - 🏗️ **Create Cloud Projects** — Build and deploy your own cloud-based applications
 - 💼 **Launch Your SaaS Business** — Turn your ideas into subscription-based services
 - 🌐 **Offer as a Service** — Let your customers access powerful tools through your platform
-- 💰 **Zero Cost to Start** — Completely free to use, modify, and deploy
+- 💰 **Free Platform** — This project is completely free to use, modify, and deploy
+- 🚂 **Powered by Railway** — Uses Railway API for reliable cloud infrastructure (Railway is a paid service)
 
 This project empowers developers, startups, and businesses to enter the SaaS market with a solid, production-ready foundation.
 
@@ -39,9 +42,10 @@ This project is being actively built and improved. New features are added regula
 | Google OAuth Authentication | ✅ Ready |
 | HTMX-powered SPA Experience | ✅ Ready |
 | Modern, Responsive UI | ✅ Ready |
+| Railway API Integration | 🔨 In Progress |
 | Project Management | 🔨 In Progress |
 | Template Editor | 🔨 In Progress |
-| Service Deployment | 🔨 In Progress |
+| Service Deployment via Railway | 🔨 In Progress |
 | Multi-tenant Support | 📋 Planned |
 | Billing & Subscriptions | 📋 Planned |
 | API Endpoints | 📋 Planned |
@@ -58,7 +62,40 @@ This project is being actively built and improved. New features are added regula
 | **django-allauth** | Authentication (Google OAuth included) |
 | **Bootstrap 5** | Modern UI Components |
 | **Crispy Forms** | Beautiful Form Styling |
-| **Railway** | Deployment Platform |
+| **Railway API** | Cloud Deployment & Infrastructure |
+
+---
+
+## 💳 Important: Railway API (Paid Service)
+
+> ⚠️ **Please Note: This platform uses the Railway API for cloud deployments**
+
+This project integrates with [Railway](https://railway.app/) to provide cloud infrastructure and deployment capabilities. While **this SaaS Platform project itself is completely free**, Railway is a **paid third-party service**.
+
+### What You Need to Know:
+
+| Aspect | Details |
+|--------|---------|
+| **This Project** | ✅ Free & Open Source |
+| **Railway API** | 💳 Paid Service (usage-based pricing) |
+| **Railway Account** | Required for deployment features |
+| **Railway API Token** | Needed to connect your deployments |
+
+### Railway Pricing:
+
+- Railway offers a **free trial** with limited credits
+- After trial, you pay based on resource usage (compute, memory, bandwidth)
+- Check [Railway Pricing](https://railway.app/pricing) for current rates
+
+### Why Railway?
+
+- 🚀 Seamless deployment from GitHub
+- 🔧 Easy environment management
+- 📊 Built-in monitoring and logs
+- 🌐 Automatic SSL and custom domains
+- ⚡ Fast, reliable infrastructure
+
+**Bottom Line:** The platform code is free — you only pay Railway for the cloud resources you use when deploying projects.
 
 ---
 
@@ -137,11 +174,27 @@ saas_platform/
 
 ## 🌍 Deployment
 
-This project is designed for easy deployment on **Railway**:
+This project uses the **Railway API** for cloud deployments:
+
+### Setup Railway Integration:
+
+1. Create an account at [Railway](https://railway.app/)
+2. Generate an API token from your Railway dashboard
+3. Add your Railway API token to environment variables:
+   ```bash
+   export RAILWAY_API_TOKEN=your-railway-api-token
+   ```
+4. Connect your projects and deploy through the platform
+
+### Direct Railway Deployment:
+
+You can also deploy this platform itself on Railway:
 
 1. Connect your GitHub repository to Railway
 2. Set environment variables in Railway dashboard
 3. Deploy! Railway handles the rest
+
+> 💡 **Remember:** Railway is a paid service. Monitor your usage to manage costs.
 
 ---
 
