@@ -17,6 +17,31 @@
 <!-- Templates Tab -->
 {% if active_tab == 'template' %}
 <div id="template-content">
+    <!-- Messages for HTMX responses -->
+    {% if messages %}
+    <div class="messages-container mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    <script>
+        // Auto-dismiss messages after 3 seconds
+        setTimeout(function() {
+            document.querySelectorAll('.messages-container .alert').forEach(function(alert) {
+                if (typeof bootstrap !== 'undefined' && bootstrap.Alert) {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                } else {
+                    alert.remove();
+                }
+            });
+        }, 3000);
+    </script>
+    {% endif %}
+    
     {% if template_action == 'create' or template_action == 'architecture' or template_action == 'settings' %}
         <!-- Template Editor (Full Grid View) -->
         <div id="template-content-editor-wrapper" style="width: 100%; height: calc(100vh - var(--navbar-height, 70px)); padding: 0; margin: 0; position: relative;">
@@ -34,7 +59,7 @@
             <button 
                 type="button" 
                 class="btn btn-dark text-white"
-                hx-get="{% url 'accounts:settings' %}?tab=template&action=create"
+                hx-post="{% url 'accounts:quick_create_template' %}"
                 hx-target="#template-content"
                 hx-swap="innerHTML">
                 <i class="bi bi-plus-circle me-1"></i> NEW TEMPLATE
@@ -61,10 +86,18 @@
                             </small>
                         </div>
                         <div class="btn-group">
-                            <button type="button" class="btn btn-sm btn-outline-secondary">
+                            <button 
+                                type="button" 
+                                class="btn btn-sm btn-outline-secondary"
+                                hx-get="{% url 'accounts:view_template' template.id %}"
+                                hx-target="#template-content"
+                                hx-swap="innerHTML">
                                 <i class="bi bi-eye"></i> View
                             </button>
-                            <button type="button" class="btn btn-sm btn-outline-danger">
+                            <button 
+                                type="button" 
+                                class="btn btn-sm btn-outline-danger"
+                                onclick="showDeleteConfirmation({{ template.id }}, '{{ template.name|escapejs }}')">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
@@ -73,6 +106,102 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Delete Confirmation Modal -->
+        <div class="modal fade" id="deleteTemplateModal" tabindex="-1" aria-labelledby="deleteTemplateModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title" id="deleteTemplateModalLabel">
+                            <i class="bi bi-exclamation-triangle text-danger me-2"></i>
+                            Delete Template
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="mb-0">Are you sure you want to delete <strong id="deleteTemplateName"></strong>?</p>
+                        <p class="text-muted small mt-2 mb-0">This action cannot be undone. All services associated with this template will also be deleted.</p>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button 
+                            type="button" 
+                            class="btn btn-danger"
+                            id="confirmDeleteBtn"
+                            hx-post=""
+                            hx-target="#template-content"
+                            hx-swap="innerHTML">
+                            <i class="bi bi-trash me-1"></i> Delete Template
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+        // Use window object to avoid redeclaration errors on HTMX swaps
+        if (typeof window.deleteModalInstance === 'undefined') {
+            window.deleteModalInstance = null;
+        }
+        
+        // Only add event listener once
+        if (!window.deleteModalListenerAdded) {
+            window.deleteModalListenerAdded = true;
+            
+            // Close modal BEFORE HTMX swaps content - this is critical!
+            document.addEventListener('htmx:beforeSwap', function(evt) {
+                // Check if the request was from our delete button
+                if (evt.detail.requestConfig && evt.detail.requestConfig.elt && 
+                    evt.detail.requestConfig.elt.id === 'confirmDeleteBtn') {
+                    closeDeleteModal();
+                }
+            });
+        }
+        
+        function showDeleteConfirmation(templateId, templateName) {
+            // Set the template name in the modal
+            document.getElementById('deleteTemplateName').textContent = templateName;
+            
+            // Set the delete URL on the confirm button (URLs are at root, not /accounts/)
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            confirmBtn.setAttribute('hx-post', '/template/' + templateId + '/delete/');
+            
+            // Re-process the button for HTMX
+            if (typeof htmx !== 'undefined') {
+                htmx.process(confirmBtn);
+            }
+            
+            // Show the modal
+            const modalEl = document.getElementById('deleteTemplateModal');
+            window.deleteModalInstance = new bootstrap.Modal(modalEl);
+            window.deleteModalInstance.show();
+        }
+        
+        function closeDeleteModal() {
+            // Immediately remove backdrop and unlock body
+            document.querySelectorAll('.modal-backdrop').forEach(function(backdrop) {
+                backdrop.remove();
+            });
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('padding-right');
+            
+            // Dispose modal instance
+            if (window.deleteModalInstance) {
+                try {
+                    window.deleteModalInstance.dispose();
+                } catch(e) {}
+                window.deleteModalInstance = null;
+            }
+            
+            // Also try to hide any modal element that might still be visible
+            const modalEl = document.getElementById('deleteTemplateModal');
+            if (modalEl) {
+                modalEl.classList.remove('show');
+                modalEl.style.display = 'none';
+            }
+        }
+        </script>
         {% else %}
         <div class="card">
             <div class="card-body text-center py-5">
@@ -82,10 +211,10 @@
                 <button 
                     type="button" 
                     class="btn btn-primary"
-                    hx-get="{% url 'accounts:settings' %}?tab=template&action=create"
+                    hx-post="{% url 'accounts:quick_create_template' %}"
                     hx-target="#template-content"
                     hx-swap="innerHTML">
-                    <i class="bi bi-plus-circle me-1"></i> Create Template
+                    <i class="bi bi-plus-circle me-1"></i> CREATE TEMPLATE
                 </button>
             </div>
         </div>

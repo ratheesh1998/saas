@@ -1,30 +1,121 @@
-<div class="row">
-    <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>Dashboard</h2>
-        </div>
-        
-        <div class="welcome-card mb-4">
-            <h4 class="mb-2">Welcome back, {{ user.email }}</h4>
-            <p class="mb-0">Manage your SaaS products and deployments from here.</p>
-        </div>
+<!-- Dashboard Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0">Projects</h2>
+        <p class="text-muted mb-0 small">{{ projects|length }} project{{ projects|length|pluralize }}</p>
+    </div>
+    <button 
+        type="button" 
+        class="btn btn-primary d-flex align-items-center gap-2"
+        data-bs-toggle="modal" 
+        data-bs-target="#newProjectModal">
+        <i class="bi bi-plus-lg"></i> New
+    </button>
+</div>
 
-        <div class="row">
-            <div class="col-md-6 mb-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">Your Products</h5>
-                        <p class="card-text">You haven't deployed any products yet.</p>
-                        <a href="#" class="btn btn-primary">Deploy New Product</a>
+<!-- Projects Grid -->
+{% if projects %}
+<div class="row g-4">
+    {% for project in projects %}
+    <div class="col-md-6 col-lg-4">
+        <div class="project-card" 
+             hx-get="{% url 'core:project_view' project.id %}"
+             hx-target="#main-content"
+             hx-swap="innerHTML"
+             hx-push-url="{% url 'core:project_view' project.id %}">
+            <h5 class="project-card-title">{{ project.name }}</h5>
+            <p class="project-card-services">
+                {% if project.services_count > 0 %}
+                    {{ project.services_count }} service{{ project.services_count|pluralize }}
+                {% else %}
+                    empty project
+                {% endif %}
+            </p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<!-- Empty State -->
+<div class="empty-state">
+    <div class="empty-state-icon">
+        <i class="bi bi-folder2-open"></i>
+    </div>
+    <h4>No projects yet</h4>
+    <p class="text-muted mb-4">Get started by creating your first project</p>
+    <button 
+        type="button" 
+        class="btn btn-primary d-flex align-items-center gap-2 mx-auto"
+        hx-post="{% url 'core:create_project' %}"
+        hx-target="#main-content"
+        hx-swap="innerHTML">
+        <i class="bi bi-plus-lg"></i> Create Project
+    </button>
+</div>
+{% endif %}
+
+<!-- New Project Modal -->
+<div class="modal fade" id="newProjectModal" tabindex="-1" aria-labelledby="newProjectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content new-project-modal">
+            <div class="modal-header">
+                <div class="w-100 text-center">
+                    <div class="new-project-icon">
+                        <i class="bi bi-grid-3x3-gap-fill"></i>
                     </div>
+                    <h4 class="modal-title mt-3" id="newProjectModalLabel">New project</h4>
+                    <p class="text-muted mb-0 small">Deploy your first service to production</p>
                 </div>
+                <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="col-md-6 mb-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">Quick Actions</h5>
-                        <p class="card-text">Get started with your first deployment.</p>
-                        <a href="#" class="btn btn-outline-primary">View Documentation</a>
+            <div class="modal-body">
+                <div class="new-project-search mb-4">
+                    <input type="text" class="form-control" placeholder="What would you like to deploy today?" id="deploySearchInput">
+                </div>
+                
+                <div class="deploy-options">
+                    <div class="deploy-option" onclick="selectDeployOption('github')">
+                        <div class="deploy-option-icon">
+                            <i class="bi bi-github"></i>
+                        </div>
+                        <span class="deploy-option-title">GitHub Repository</span>
+                        <i class="bi bi-chevron-right deploy-option-arrow"></i>
+                    </div>
+                    
+                    <div class="deploy-option" onclick="selectDeployOption('database')">
+                        <div class="deploy-option-icon">
+                            <i class="bi bi-database"></i>
+                        </div>
+                        <span class="deploy-option-title">Database</span>
+                        <i class="bi bi-chevron-right deploy-option-arrow"></i>
+                    </div>
+                    
+                    <div class="deploy-option" onclick="selectDeployOption('template')">
+                        <div class="deploy-option-icon">
+                            <i class="bi bi-layers"></i>
+                        </div>
+                        <span class="deploy-option-title">Template</span>
+                        <i class="bi bi-chevron-right deploy-option-arrow"></i>
+                    </div>
+                    
+                    <div class="deploy-option" onclick="selectDeployOption('docker')">
+                        <div class="deploy-option-icon">
+                            <i class="bi bi-box-seam"></i>
+                        </div>
+                        <span class="deploy-option-title">Docker Image</span>
+                        <i class="bi bi-chevron-right deploy-option-arrow"></i>
+                    </div>
+                    
+                    <div class="deploy-option" 
+                         hx-post="{% url 'core:create_project' %}"
+                         hx-target="#main-content"
+                         hx-swap="innerHTML"
+                         onclick="closeNewProjectModal()">
+                        <div class="deploy-option-icon">
+                            <i class="bi bi-folder-plus"></i>
+                        </div>
+                        <span class="deploy-option-title">Empty Project</span>
+                        <i class="bi bi-chevron-right deploy-option-arrow"></i>
                     </div>
                 </div>
             </div>
@@ -32,4 +123,273 @@
     </div>
 </div>
 
+<style>
+/* Project Cards - Light theme matching project style */
+.project-card {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    padding: 1.75rem;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+}
 
+.project-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 2px;
+    height: 0;
+    background: var(--black);
+    transition: height 0.2s ease;
+}
+
+.project-card:hover {
+    border-color: var(--black);
+}
+
+.project-card:hover::before {
+    height: 100%;
+}
+
+.project-card-title {
+    color: var(--black);
+    font-weight: 600;
+    font-size: 1.125rem;
+    margin-bottom: 0;
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+.project-card-services {
+    color: var(--gray-500);
+    font-size: 0.875rem;
+    margin-bottom: 0;
+    margin-top: auto;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 5rem 2rem;
+    border: 1px solid var(--gray-200);
+    background: var(--white);
+}
+
+.empty-state-icon {
+    font-size: 3rem;
+    color: var(--gray-400);
+    margin-bottom: 1.5rem;
+}
+
+.empty-state h4 {
+    color: var(--black);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+/* New Project Modal - Light theme */
+.new-project-modal {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 0;
+}
+
+.new-project-modal .modal-header {
+    border-bottom: none;
+    padding: 2rem 2rem 0;
+}
+
+.new-project-modal .modal-body {
+    padding: 1.5rem 2rem 2rem;
+}
+
+.new-project-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: var(--black);
+    color: var(--white);
+    font-size: 1.25rem;
+}
+
+.new-project-modal .modal-title {
+    color: var(--black);
+    font-weight: 600;
+    font-size: 1.5rem;
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+.new-project-search .form-control {
+    background: var(--white);
+    border: 1px solid var(--gray-300);
+    border-radius: 0;
+    color: var(--black);
+    padding: 0.875rem 1rem;
+    font-size: 0.9375rem;
+}
+
+.new-project-search .form-control::placeholder {
+    color: var(--gray-400);
+}
+
+.new-project-search .form-control:focus {
+    border-color: var(--black);
+    box-shadow: none;
+}
+
+/* Deploy Options */
+.deploy-options {
+    display: flex;
+    flex-direction: column;
+}
+
+.deploy-option {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    cursor: pointer;
+    transition: background-color 0.15s;
+    border: 1px solid transparent;
+    margin-bottom: -1px;
+}
+
+.deploy-option:hover {
+    background: var(--gray-50);
+    border-color: var(--gray-200);
+}
+
+.deploy-option:first-child {
+    background: var(--black);
+    border-color: var(--black);
+}
+
+.deploy-option:first-child:hover {
+    background: var(--gray-900);
+}
+
+.deploy-option:first-child .deploy-option-icon,
+.deploy-option:first-child .deploy-option-title,
+.deploy-option:first-child .deploy-option-arrow {
+    color: var(--white);
+}
+
+.deploy-option-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    color: var(--gray-600);
+    font-size: 1.125rem;
+}
+
+.deploy-option-title {
+    flex: 1;
+    color: var(--black);
+    font-weight: 500;
+    font-size: 0.9375rem;
+}
+
+.deploy-option-arrow {
+    color: var(--gray-400);
+    font-size: 0.875rem;
+}
+</style>
+
+<script>
+// Close modal helper
+function closeNewProjectModal() {
+    const modalEl = document.getElementById('newProjectModal');
+    if (modalEl) {
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) {
+            modal.hide();
+        }
+        // Cleanup backdrop
+        setTimeout(function() {
+            document.querySelectorAll('.modal-backdrop').forEach(function(backdrop) {
+                backdrop.remove();
+            });
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('padding-right');
+        }, 150);
+    }
+}
+
+function selectDeployOption(type) {
+    console.log('Selected deploy option:', type);
+    
+    // Close the modal
+    closeNewProjectModal();
+    
+    // Handle different deploy types
+    switch(type) {
+        case 'github':
+            // TODO: Show GitHub repository selection
+            alert('GitHub Repository - Coming soon!');
+            break;
+        case 'database':
+            // TODO: Show database options
+            alert('Database - Coming soon!');
+            break;
+        case 'template':
+            // Navigate to template selection using HTMX
+            if (typeof htmx !== 'undefined') {
+                htmx.ajax('GET', '/settings/?tab=template', {
+                    target: '#main-content',
+                    swap: 'innerHTML'
+                });
+            } else {
+                window.location.href = '/settings/?tab=template';
+            }
+            break;
+        case 'docker':
+            // TODO: Show Docker image input
+            alert('Docker Image - Coming soon!');
+            break;
+    }
+}
+
+function openProject(projectId) {
+    // Navigate to project view using HTMX
+    if (typeof htmx !== 'undefined') {
+        htmx.ajax('GET', '/project/' + projectId + '/', {
+            target: '#main-content',
+            swap: 'innerHTML'
+        });
+        // Update URL
+        history.pushState({}, '', '/project/' + projectId + '/');
+    } else {
+        window.location.href = '/project/' + projectId + '/';
+    }
+}
+
+// Filter deploy options based on search input
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('deploySearchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const options = document.querySelectorAll('.deploy-option');
+            
+            options.forEach(function(option) {
+                const title = option.querySelector('.deploy-option-title').textContent.toLowerCase();
+                if (title.includes(searchTerm) || searchTerm === '') {
+                    option.style.display = 'flex';
+                } else {
+                    option.style.display = 'none';
+                }
+            });
+        });
+    }
+});
+</script>

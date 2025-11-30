@@ -1,9 +1,15 @@
-<div class="alert alert-success">
+<div class="alert alert-success" id="login-success-message" style="transition: opacity 0.5s ease-out;">
     <h4>Welcome back!</h4>
     <p>Redirecting to dashboard...</p>
 </div>
 <script>
     setTimeout(function() {
-        window.location.href = "/dashboard/";
-    }, 1000);
+        var message = document.getElementById('login-success-message');
+        if (message) {
+            message.style.opacity = '0';
+        }
+        setTimeout(function() {
+            window.location.href = "/dashboard/";
+        }, 500);
+    }, 3000);
 </script>

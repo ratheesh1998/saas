@@ -165,12 +165,21 @@ class TemplateCreationForm(forms.ModelForm):
     def clean_template_config(self):
         """Validate and parse JSON template config"""
         import json
-        config_str = self.cleaned_data.get('template_config', '{}')
-        try:
-            config = json.loads(config_str)
-            return config
-        except json.JSONDecodeError as e:
-            raise forms.ValidationError(f"Invalid JSON format: {str(e)}")
+        config = self.cleaned_data.get('template_config', {})
+        
+        # Handle both string and dict/list inputs
+        # Django's JSONField may already parse it, or it might still be a string
+        if isinstance(config, str):
+            try:
+                config = json.loads(config)
+            except json.JSONDecodeError as e:
+                raise forms.ValidationError(f"Invalid JSON format: {str(e)}")
+        
+        # Ensure we have a dict or list
+        if not isinstance(config, (dict, list)):
+            raise forms.ValidationError("Template config must be a valid JSON object or array")
+        
+        return config
     
     def save(self, commit=True):
         instance = super().save(commit=False)

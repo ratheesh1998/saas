@@ -8,9 +8,9 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('accounts/', include('allauth.urls')),
+    path('', include('accounts.urls')),  # Custom accounts URLs first
+    path('accounts/', include('allauth.urls')),  # Allauth URLs
     path('', include('core.urls')),
-    path('', include('accounts.urls')),
 ]
 
 if settings.DEBUG:

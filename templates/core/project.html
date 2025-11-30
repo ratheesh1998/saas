@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ template_name }} - SaaS Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    #main-content {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+    }
+    
+    #main-content.container {
+        max-width: 100% !important;
+        padding: 0 !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="project-content" style="width: 100vw; height: calc(100vh - 70px); margin-left: calc(-50vw + 50%); position: relative;">
+    {% include 'core/partials/project_editor.html' %}
+</div>
+{% endblock %}
+

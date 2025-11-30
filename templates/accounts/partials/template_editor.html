@@ -1,5 +1,11 @@
 {% load crispy_forms_tags %}
 
+{% if template_id %}
+<script>
+    window.templateIdFromContext = {{ template_id }};
+</script>
+{% endif %}
+
 <div id="template-editor-full" class="template-editor-full">
     <!-- Architecture Tab Content (Grid Only) -->
     <div id="architecture-tab" class="tab-content">
@@ -19,18 +25,6 @@
             <div id="services-canvas" class="services-canvas">
                 <!-- Service cards will be added here dynamically -->
             </div>
-            
-            <!-- Empty State -->
-            <div id="empty-state" class="text-center py-5">
-                <i class="bi bi-box" style="font-size: 4rem; color: #dee2e6;"></i>
-                <p class="text-muted mt-3 mb-4">No services added yet</p>
-                <button 
-                    type="button" 
-                    class="btn btn-dark text-white"
-                    onclick="addServiceCard()">
-                    <i class="bi bi-plus-circle me-1"></i> ADD YOUR FIRST SERVICE
-                </button>
-            </div>
         </div>
         
         <!-- Off-Canvas Panel for Service Details -->
@@ -39,15 +33,16 @@
                 <div class="d-flex align-items-center flex-grow-1">
                     <i class="bi bi-box service-offcanvas-icon me-3" id="offcanvas-service-icon" style="font-size: 1.5rem;"></i>
                     <div class="flex-grow-1">
-                        <input 
-                            type="text" 
-                            class="offcanvas-title-input" 
-                            id="offcanvas-service-name-input" 
-                            value="Service Name"
-                            placeholder="Enter service name"
-                            onchange="updateServiceName(this.value)"
-                            onfocus="this.classList.add('editing')"
-                            onblur="this.classList.remove('editing'); updateServiceName(this.value);">
+                            <input 
+                                type="text" 
+                                class="offcanvas-title-input" 
+                                id="offcanvas-service-name-input" 
+                                value="Service Name"
+                                placeholder="Enter service name"
+                                onchange="updateServiceName(this.value)"
+                                onkeypress="if(event.key === 'Enter') { this.blur(); updateServiceName(this.value); }"
+                                onfocus="this.classList.add('editing')"
+                                onblur="this.classList.remove('editing'); updateServiceName(this.value);">
                     </div>
                 </div>
                 <button type="button" class="btn-close ms-3" data-bs-dismiss="offcanvas" aria-label="Close" onclick="if(typeof hideOffcanvasFallback === 'function') { hideOffcanvasFallback(); } else if(typeof bootstrap !== 'undefined' && bootstrap.Offcanvas) { const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('service-offcanvas')); if(offcanvas) offcanvas.hide(); }"></button>
@@ -66,16 +61,16 @@
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings-pane" type="button" role="tab">
+                        <button class="nav-link" id="settings-tab-btn" data-bs-toggle="tab" data-bs-target="#settings-pane" type="button" role="tab">
                             Settings
                         </button>
                     </li>
                 </ul>
                 
                 <!-- Tab Content -->
-                <div class="tab-content px-4 py-4" id="service-tab-content">
+                <div class="tab-content" id="service-tab-content">
                     <!-- Overview Tab -->
-                    <div class="tab-pane fade show active" id="overview-pane" role="tabpanel">
+                    <div class="tab-pane fade show active px-4 py-4" id="overview-pane" role="tabpanel">
                         <div class="mb-5">
                             <h6 class="mb-4 fw-semibold"><i class="bi bi-code-square me-2"></i> Source</h6>
                             <div class="card" style="background-color: var(--gray-50, #fafafa); border: 1px solid var(--gray-200, #e5e5e5);">
@@ -116,7 +111,7 @@
                     </div>
                     
                     <!-- Variables Tab -->
-                    <div class="tab-pane fade" id="variables-pane" role="tabpanel">
+                    <div class="tab-pane fade px-4 py-4" id="variables-pane" role="tabpanel">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h6 class="mb-0 fw-semibold">Service Variables</h6>
                             <div>
@@ -139,43 +134,189 @@
                         </div>
                     </div>
                     
-                    <!-- Settings Tab -->
+                    <!-- Settings Tab - Single Scrollable Page -->
                     <div class="tab-pane fade" id="settings-pane" role="tabpanel">
-                        <div class="mb-5">
-                            <h6 class="mb-4 fw-semibold"><i class="bi bi-code-square me-2"></i> Source</h6>
-                            <div class="mb-3">
-                                <label class="form-label fw-medium mb-2">Source Image</label>
-                                <input type="text" class="form-control" id="service-source-image" placeholder="e.g., docker-image:tag or ghcr.io/..." onchange="autoSaveService()">
-                                <small class="form-text text-muted mt-2 d-block">Configure auto updates</small>
+                        <div class="settings-single-page">
+                            <!-- Search/Filter Bar -->
+                            <div class="settings-filter-bar px-4 py-3 border-bottom bg-white sticky-top">
+                                <input type="text" class="form-control" placeholder="Filter Settings..." id="settings-filter">
                             </div>
-                        </div>
-                        
-                        <div class="mb-5">
-                            <h6 class="mb-4 fw-semibold"><i class="bi bi-wifi me-2"></i> Networking</h6>
-                            <div class="mb-3">
-                                <label class="form-label fw-medium mb-2">Public Networking</label>
-                                <p class="text-muted small mb-3">Make this service publicly accessible via HTTP, TCP, or both.</p>
-                                <div class="d-flex gap-2">
-                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="addHttpProxy()">
-                                        <i class="bi bi-plus me-1"></i> HTTP Proxy
-                                    </button>
-                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="addTcpProxy()">
-                                        <i class="bi bi-plus me-1"></i> TCP Proxy
-                                    </button>
+                            
+                            <!-- Scrollable Content -->
+                            <div class="settings-scroll-content px-4 py-4">
+                                <!-- Source Section -->
+                                <div class="settings-section-block mb-5" id="settings-source">
+                                    <div class="d-flex align-items-start mb-3">
+                                        <div class="settings-icon-wrapper">
+                                            <i class="bi bi-code-square settings-section-icon"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h5 class="mb-0">Source</h5>
+                                        </div>
+                                    </div>
+                                    <div class="settings-section-content">
+                                        <div class="mb-4">
+                                            <label class="form-label fw-medium mb-2">Source Image</label>
+                                            <input type="text" class="form-control" id="service-source-image" placeholder="e.g., horillaadmin/horilla-cloud:latest" oninput="debounceValidateImage()">
+                                            <small class="form-text text-muted mt-2 d-block">Docker image or container registry URL</small>
+                                            <div id="image-validation-result" class="mt-2"></div>
+                                        </div>
+                                        
+                                        <!-- Registry Credentials Section -->
+                                        <div class="registry-credentials-section">
+                                            <h6 class="fw-semibold mb-3">Registry Credentials</h6>
+                                            <p class="text-muted small mb-3">Private Docker Registry credentials used to deploy your Docker image.</p>
+                                            
+                                            <!-- Credentials Form (Initially Hidden) -->
+                                            <div id="credentials-form" class="credentials-form" style="display: none;">
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-medium mb-2">Username</label>
+                                                    <div class="input-group">
+                                                        <input type="text" class="form-control" id="registry-username" placeholder="Enter registry username">
+                                                        <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('registry-username')">
+                                                            <i class="bi bi-eye-slash"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-medium mb-2">Password</label>
+                                                    <div class="input-group">
+                                                        <input type="password" class="form-control" id="registry-password" placeholder="Enter registry password">
+                                                        <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('registry-password')">
+                                                            <i class="bi bi-eye"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="d-flex gap-2">
+                                                    <button type="button" class="btn btn-primary btn-sm" onclick="saveCredentials()">
+                                                        Set credentials
+                                                    </button>
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleCredentialsForm()">
+                                                        Cancel
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Add Credentials Button -->
+                                            <div id="add-credentials-btn-wrapper">
+                                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="toggleCredentialsForm()">
+                                                    <i class="bi bi-plus me-1"></i> Add credentials
+                                                </button>
+                                            </div>
+                                            
+                                            <!-- Credentials Info Box (shown when credentials exist) -->
+                                            <div id="credentials-info" class="alert alert-info d-flex align-items-center justify-content-between" style="display: none !important;">
+                                                <div>
+                                                    <i class="bi bi-info-circle me-2"></i>
+                                                    <span>Registry credentials configured</span>
+                                                </div>
+                                                <button type="button" class="btn btn-sm btn-link text-primary" onclick="toggleCredentialsForm()">
+                                                    Edit
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <h6 class="mb-4 fw-semibold"><i class="bi bi-rocket me-2"></i> Deploy</h6>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label fw-medium mb-2">CPU</label>
-                                    <input type="number" class="form-control" id="service-cpu" value="8" min="1" max="32" onchange="autoSaveService()">
+                                
+                                <!-- Networking Section -->
+                                <div class="settings-section-block mb-5" id="settings-networking">
+                                    <div class="d-flex align-items-start mb-3">
+                                        <div class="settings-icon-wrapper">
+                                            <i class="bi bi-diagram-3 settings-section-icon"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h5 class="mb-0">Networking</h5>
+                                        </div>
+                                    </div>
+                                    <div class="settings-section-content">
+                                        <h6 class="fw-semibold mb-3">Public Networking</h6>
+                                        <p class="text-muted mb-3">Access your application over HTTP with the following domains</p>
+                                        
+                                        <div class="networking-items mb-3">
+                                            <div class="networking-item border rounded p-3 mb-2">
+                                                <div class="d-flex align-items-center justify-content-between">
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="bi bi-globe me-2"></i>
+                                                        <span class="text-muted small">No domains configured</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addHttpProxy()">
+                                            <i class="bi bi-plus me-1"></i> Custom Domain
+                                        </button>
+                                        
+                                        <div class="mt-4">
+                                            <p class="text-muted mb-3">Connect to your service over TCP using a proxied domain and port</p>
+                                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="addTcpProxy()">
+                                                <i class="bi bi-plus me-1"></i> TCP Proxy
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-medium mb-2">Memory (GB)</label>
-                                    <input type="number" class="form-control" id="service-memory" value="8" min="1" max="32" onchange="autoSaveService()">
+                                
+                                <!-- Build Section -->
+                                <div class="settings-section-block mb-5" id="settings-build">
+                                    <div class="d-flex align-items-start mb-3">
+                                        <div class="settings-icon-wrapper">
+                                            <i class="bi bi-hammer settings-section-icon"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h5 class="mb-0">Build</h5>
+                                        </div>
+                                    </div>
+                                    <div class="settings-section-content">
+                                        <p class="text-muted">No build configuration needed for this service.</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Deploy Section -->
+                                <div class="settings-section-block mb-5" id="settings-deploy">
+                                    <div class="d-flex align-items-start mb-3">
+                                        <div class="settings-icon-wrapper">
+                                            <i class="bi bi-rocket settings-section-icon"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h5 class="mb-0">Deploy</h5>
+                                        </div>
+                                    </div>
+                                    <div class="settings-section-content">
+                                        <h6 class="fw-semibold mb-3">Resource Limits</h6>
+                                        <div class="row g-3 mb-4">
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-medium mb-2">CPU (vCPU)</label>
+                                                <input type="number" class="form-control" id="service-cpu" value="8" min="1" max="32" onchange="autoSaveService()" onkeypress="if(event.key === 'Enter') { this.blur(); autoSaveService(); }">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-medium mb-2">Memory (GB)</label>
+                                                <input type="number" class="form-control" id="service-memory" value="8" min="1" max="32" onchange="autoSaveService()" onkeypress="if(event.key === 'Enter') { this.blur(); autoSaveService(); }">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Danger Section -->
+                                <div class="settings-section-block mb-5 last-section" id="settings-danger">
+                                    <div class="d-flex align-items-start mb-3">
+                                        <div class="settings-icon-wrapper">
+                                            <i class="bi bi-exclamation-triangle text-danger settings-section-icon"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h5 class="mb-0 text-danger">Danger</h5>
+                                        </div>
+                                    </div>
+                                    <div class="settings-section-content">
+                                        <div class="border border-danger rounded p-4">
+                                            <h6 class="fw-semibold mb-2">Delete Service</h6>
+                                            <p class="text-muted mb-3">Deleting this service will permanently delete all its deployments and remove it from this environment. This cannot be undone.</p>
+                                            <button type="button" class="btn btn-danger" onclick="if(confirm('Are you sure you want to delete this service?')) { removeServiceCard(currentServiceId, event); if(typeof bootstrap !== 'undefined' && bootstrap.Offcanvas) { const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('service-offcanvas')); if(offcanvas) offcanvas.hide(); } }">
+                                                Delete service
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -248,12 +389,20 @@
                                 placeholder="Enter template description"></textarea>
                         </div>
                         
-                        <button 
-                            type="button" 
-                            class="btn btn-primary"
-                            onclick="updateTemplateInfo()">
-                            Update Info
-                        </button>
+                        <div class="d-flex gap-2">
+                            <button 
+                                type="button" 
+                                class="btn btn-primary"
+                                onclick="saveTemplate()">
+                                <i class="bi bi-save me-1"></i> Create Template
+                            </button>
+                            <button 
+                                type="button" 
+                                class="btn btn-outline-secondary"
+                                onclick="updateTemplateInfo()">
+                                Update Info
+                            </button>
+                        </div>
                     </div>
                     
                     <!-- Danger Section -->
@@ -285,14 +434,44 @@
 </div>
 
 <script>
-let serviceCounter = 0;
-let services = {};
-let cardDragData = new Map(); // Store drag state per card - initialize early
+// Initialize services object and counter immediately - make them global
+// Use window assignments to avoid redeclaration errors on HTMX swaps
+if (typeof window.serviceCounter === 'undefined') {
+    window.serviceCounter = 0;
+}
+if (typeof window.services === 'undefined') {
+    window.services = {};
+}
+if (typeof window.cardDragData === 'undefined') {
+    window.cardDragData = new Map();
+}
+
+let serviceCounter = window.serviceCounter;
+let services = window.services;
+let cardDragData = window.cardDragData;
+
 let draggedElement = null;
 let dragOffset = { x: 0, y: 0 };
 let dragStartPos = { x: 0, y: 0 };
 let isDragging = false;
 let dragThreshold = 5; // pixels to move before drag starts
+
+// Get template ID from URL or Django context
+let templateId = null;
+
+// Try URL params first
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('template_id')) {
+    templateId = urlParams.get('template_id');
+}
+
+// If not in URL, check if it's in the template context
+if (!templateId && typeof window.templateIdFromContext !== 'undefined') {
+    templateId = window.templateIdFromContext;
+}
+
+console.log('Template ID:', templateId);
+
 
 // Handle card click - define early so it's available globally
 function handleCardClick(serviceId, event) {
@@ -363,17 +542,24 @@ function showTab(tabName) {
 
 function showSettingsSection(section) {
     // Hide all sections
-    document.getElementById('settings-general').style.display = 'none';
-    document.getElementById('settings-danger').style.display = 'none';
+    document.querySelectorAll('.settings-section').forEach(sec => {
+        sec.style.display = 'none';
+    });
     
     // Show selected section
-    document.getElementById('settings-' + section).style.display = 'block';
+    const selectedSection = document.getElementById('settings-' + section);
+    if (selectedSection) {
+        selectedSection.style.display = 'block';
+    }
     
     // Update active sidebar item
-    document.querySelectorAll('#settings-tab .nav-link').forEach(link => {
-        link.classList.remove('active');
+    document.querySelectorAll('.settings-nav-item').forEach(item => {
+        item.classList.remove('active');
     });
-    event.target.closest('.nav-link').classList.add('active');
+    const activeItem = document.querySelector(`.settings-nav-item[data-section="${section}"]`);
+    if (activeItem) {
+        activeItem.classList.add('active');
+    }
 }
 
 function updateTemplateInfo() {
@@ -394,11 +580,96 @@ function updateTemplateInfo() {
 let currentServiceId = null;
 let autoSaveTimeout = null;
 
+// Function to save service to backend
+async function saveServiceToBackend(serviceId) {
+    if (!templateId) {
+        console.warn('No template ID available');
+        return;
+    }
+    
+    const service = services[serviceId];
+    if (!service) {
+        console.error('Service not found:', serviceId);
+        return;
+    }
+    
+    try {
+        // Get CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || 
+                          getCookie('csrftoken');
+        
+        const response = await fetch('/service/create/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                template_id: templateId,
+                service_id: serviceId,
+                name: service.name,
+                image: service.image,
+                cpu: service.cpu,
+                memory: service.memory,
+                variables: service.variables,
+                networking: service.networking,
+                position: service.position
+            })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            console.log('Service saved:', data);
+        } else {
+            console.error('Error saving service:', data.error);
+        }
+    } catch (error) {
+        console.error('Error saving service:', error);
+    }
+}
+
+// Helper function to get cookie (for CSRF token)
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 function addServiceCard() {
-    serviceCounter++;
-    const serviceId = `service_${serviceCounter}`;
+    console.log('addServiceCard called');
     const canvas = document.getElementById('services-canvas');
     const emptyState = document.getElementById('empty-state');
+    
+    if (!canvas) {
+        console.error('Canvas not found!');
+        alert('Canvas not found. Please refresh the page.');
+        return;
+    }
+    
+    // Use global counter and services
+    serviceCounter = (serviceCounter || 0) + 1;
+    window.serviceCounter = serviceCounter;
+    
+    // Ensure services object exists and is synced with window
+    if (!services) {
+        services = {};
+    }
+    if (!window.services) {
+        window.services = services;
+    } else {
+        services = window.services; // Use global services object
+    }
+    
+    const serviceId = `service_${serviceCounter}`;
     
     // Hide empty state
     if (emptyState) {
@@ -426,6 +697,12 @@ function addServiceCard() {
         }
     };
     
+    // Sync with window
+    window.services = services;
+    
+    console.log('Service added:', serviceId, services[serviceId]);
+    console.log('Total services:', Object.keys(services).length);
+    
     // Create service card HTML (Railway style)
     const service = services[serviceId];
     const cardHtml = `
@@ -439,18 +716,17 @@ function addServiceCard() {
                 title="Remove service">
                 <i class="bi bi-x-lg"></i>
             </button>
-            <div class="service-card-drag-handle" title="Drag to move">
-                <i class="bi bi-grip-vertical"></i>
-            </div>
             <div class="service-card-content" onclick="handleCardClick('${serviceId}', event)">
-                <i class="bi bi-box service-card-icon"></i>
+                <div class="service-card-icon-wrapper">
+                    <i class="bi bi-box service-card-icon"></i>
+                </div>
                 <div class="service-card-info">
                     <div class="service-card-name">New Service</div>
                     <div class="service-card-subtitle">No image</div>
                 </div>
                 <div class="service-card-badge">
-                    <i class="bi bi-list-ul me-1"></i>
-                    <small>No config required</small>
+                    <i class="bi bi-list-ul"></i>
+                    <span>No config required</span>
                 </div>
             </div>
         </div>
@@ -460,10 +736,21 @@ function addServiceCard() {
     
     // Make card draggable
     const cardElement = canvas.querySelector(`[data-service-id="${serviceId}"]`);
-    makeCardDraggable(cardElement, serviceId);
+    if (cardElement && typeof makeCardDraggable === 'function') {
+        makeCardDraggable(cardElement, serviceId);
+        console.log('Card made draggable:', serviceId);
+    }
     
-    updateEmptyState();
+    if (typeof updateEmptyState === 'function') {
+        updateEmptyState();
+    }
+    
+    // Save service to backend
+    saveServiceToBackend(serviceId);
 }
+
+// Make globally accessible immediately
+window.addServiceCard = addServiceCard;
 
 function openServiceDetails(serviceId) {
     // Prevent multiple simultaneous calls
@@ -506,6 +793,31 @@ function openServiceDetails(serviceId) {
     const memoryField = document.getElementById('service-memory');
     if (memoryField) {
         memoryField.value = service.memory || 8;
+    }
+    
+    // Update credential fields and visibility
+    const credentialsForm = document.getElementById('credentials-form');
+    const credentialsInfo = document.getElementById('credentials-info');
+    const addCredentialsBtn = document.getElementById('add-credentials-btn-wrapper');
+    const usernameField = document.getElementById('registry-username');
+    
+    if (service.has_credentials) {
+        // Has credentials - show info box, hide form and add button
+        if (credentialsForm) credentialsForm.style.display = 'none';
+        if (addCredentialsBtn) addCredentialsBtn.style.display = 'none';
+        if (credentialsInfo) {
+            credentialsInfo.style.display = 'flex';
+            credentialsInfo.classList.remove('d-none');
+        }
+        // Populate username for editing
+        if (usernameField && service.registry_username) {
+            usernameField.value = service.registry_username;
+        }
+    } else {
+        // No credentials - show add button, hide form and info
+        if (credentialsForm) credentialsForm.style.display = 'none';
+        if (credentialsInfo) credentialsInfo.style.display = 'none';
+        if (addCredentialsBtn) addCredentialsBtn.style.display = 'block';
     }
     
     // Update variables list
@@ -673,7 +985,17 @@ function updateServiceName(name) {
     if (!currentServiceId || !services[currentServiceId]) return;
     
     services[currentServiceId].name = name || 'New Service';
+    
+    // Update the offcanvas title
+    const nameDisplay = document.getElementById('offcanvas-service-name');
+    if (nameDisplay) {
+        nameDisplay.textContent = services[currentServiceId].name;
+    }
+    
+    // Update the card display
     updateServiceCardDisplay(currentServiceId);
+    
+    // Save to backend
     autoSaveService();
 }
 
@@ -682,19 +1004,73 @@ function autoSaveService() {
     
     const service = services[currentServiceId];
     
-    // Update service data from form
-    service.image = document.getElementById('service-source-image').value;
-    service.cpu = parseInt(document.getElementById('service-cpu').value) || 8;
-    service.memory = parseInt(document.getElementById('service-memory').value) || 8;
+    // Update service data from form fields
+    const imageInput = document.getElementById('service-source-image');
+    const cpuInput = document.getElementById('service-cpu');
+    const memoryInput = document.getElementById('service-memory');
+    
+    if (imageInput) {
+        service.image = imageInput.value.trim();
+    }
+    if (cpuInput) {
+        service.cpu = parseInt(cpuInput.value) || 8;
+    }
+    if (memoryInput) {
+        service.memory = parseInt(memoryInput.value) || 8;
+    }
     
     // Update card display
     updateServiceCardDisplay(currentServiceId);
     
+    // Update offcanvas display
+    const imageEl = document.getElementById('offcanvas-service-image');
+    if (imageEl) {
+        imageEl.textContent = service.image || 'No image';
+    }
+    
     // Auto-save with debounce
     clearTimeout(autoSaveTimeout);
-    autoSaveTimeout = setTimeout(() => {
+    autoSaveTimeout = setTimeout(async () => {
         console.log('Auto-saving service:', service);
-        // Here you can add actual save logic if needed
+        
+        // Save to backend
+        if (!templateId) {
+            console.warn('No template ID available for auto-save');
+            return;
+        }
+        
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || 
+                              getCookie('csrftoken');
+            
+            const response = await fetch('/service/update/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    template_id: templateId,
+                    service_id: currentServiceId,
+                    name: service.name,
+                    image: service.image,
+                    cpu: service.cpu,
+                    memory: service.memory,
+                    variables: service.variables,
+                    networking: service.networking,
+                    position: service.position
+                })
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                console.log('Service auto-saved:', data);
+            } else {
+                console.error('Error auto-saving service:', data.error);
+            }
+        } catch (error) {
+            console.error('Error auto-saving service:', error);
+        }
     }, 1000);
 }
 
@@ -754,7 +1130,7 @@ function updateVariablesList() {
             html += `
                 <tr>
                     <td><code>${key}</code></td>
-                    <td><input type="text" class="form-control form-control-sm" value="${variables[key]}" onchange="updateVariable('${key}', this.value)"></td>
+                    <td><input type="text" class="form-control form-control-sm" value="${variables[key]}" onchange="updateVariable('${key}', this.value)" onkeypress="if(event.key === 'Enter') { this.blur(); updateVariable('${key}', this.value); }"></td>
                     <td><button class="btn btn-sm btn-link text-danger" onclick="removeVariable('${key}')"><i class="bi bi-trash"></i></button></td>
                 </tr>
             `;
@@ -866,6 +1242,179 @@ function editServiceSource() {
     showSettingsTab();
 }
 
+// Toggle credentials form visibility
+function toggleCredentialsForm() {
+    const form = document.getElementById('credentials-form');
+    const addBtn = document.getElementById('add-credentials-btn-wrapper');
+    const info = document.getElementById('credentials-info');
+    
+    if (form.style.display === 'none') {
+        form.style.display = 'block';
+        addBtn.style.display = 'none';
+        if (info) info.style.display = 'none';
+    } else {
+        form.style.display = 'none';
+        addBtn.style.display = 'block';
+    }
+}
+
+// Toggle password visibility
+function togglePasswordVisibility(fieldId) {
+    const field = document.getElementById(fieldId);
+    const button = field.nextElementSibling;
+    const icon = button.querySelector('i');
+    
+    if (field.type === 'password') {
+        field.type = 'text';
+        icon.classList.remove('bi-eye');
+        icon.classList.add('bi-eye-slash');
+    } else {
+        field.type = 'password';
+        icon.classList.remove('bi-eye-slash');
+        icon.classList.add('bi-eye');
+    }
+}
+
+// Save registry credentials
+async function saveCredentials() {
+    // Check if we have currentServiceId and templateId
+    if (!currentServiceId) {
+        alert('No service selected. Please click on a service card first.');
+        return;
+    }
+    
+    // Get or determine templateId
+    let activeTemplateId = templateId;
+    if (!activeTemplateId) {
+        // Try to get from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        activeTemplateId = urlParams.get('template_id');
+    }
+    
+    if (!activeTemplateId) {
+        alert('No template ID found. Please refresh the page.');
+        return;
+    }
+    
+    const username = document.getElementById('registry-username').value.trim();
+    const password = document.getElementById('registry-password').value.trim();
+    
+    if (!username || !password) {
+        alert('Please enter both username and password');
+        return;
+    }
+    
+    try {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || 
+                          getCookie('csrftoken');
+        
+        const response = await fetch('/service/update/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                template_id: activeTemplateId,
+                service_id: currentServiceId,
+                registry_username: username,
+                registry_password: password
+            })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            console.log('Credentials saved successfully');
+            
+            // Update service object in memory
+            if (services[currentServiceId]) {
+                services[currentServiceId].has_credentials = true;
+                services[currentServiceId].registry_username = username;
+            }
+            
+            // Hide form and show info
+            document.getElementById('credentials-form').style.display = 'none';
+            document.getElementById('add-credentials-btn-wrapper').style.display = 'none';
+            const info = document.getElementById('credentials-info');
+            if (info) {
+                info.style.display = 'flex';
+                info.classList.remove('d-none');
+            }
+            
+            // Clear password field for security
+            document.getElementById('registry-password').value = '';
+            
+            alert('Credentials saved successfully!');
+        } else {
+            console.error('Error saving credentials:', data.error);
+            alert('Error saving credentials: ' + (data.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error saving credentials:', error);
+        alert('Error saving credentials. Please try again.');
+    }
+}
+
+// Validate Docker image on Docker Hub
+let imageValidationTimeout = null;
+
+function debounceValidateImage() {
+    clearTimeout(imageValidationTimeout);
+    imageValidationTimeout = setTimeout(() => {
+        validateDockerImage();
+    }, 800); // Wait 800ms after user stops typing
+}
+
+async function validateDockerImage() {
+    const imageInput = document.getElementById('service-source-image');
+    const imageName = imageInput.value.trim();
+    const resultDiv = document.getElementById('image-validation-result');
+    
+    if (!imageName) {
+        resultDiv.innerHTML = '';
+        return;
+    }
+    
+    // Show loading state
+    resultDiv.innerHTML = '<small class="text-muted"><i class="bi bi-hourglass-split me-1"></i>Validating image...</small>';
+    
+    try {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || 
+                          getCookie('csrftoken');
+        
+        const response = await fetch('/service/validate-image/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ image: imageName })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            if (data.exists) {
+                resultDiv.innerHTML = '<small class="text-success"><i class="bi bi-check-circle-fill me-1"></i>Image found on Docker Hub</small>';
+            } else {
+                resultDiv.innerHTML = '<small class="text-warning"><i class="bi bi-exclamation-triangle-fill me-1"></i>Image not found on Docker Hub. It may be private or from another registry.</small>';
+            }
+        } else {
+            resultDiv.innerHTML = '<small class="text-danger"><i class="bi bi-x-circle-fill me-1"></i>Error validating image</small>';
+        }
+        
+        // Auto-save the service with the new image
+        if (currentServiceId && services[currentServiceId]) {
+            services[currentServiceId].image = imageName;
+            autoSaveService();
+        }
+    } catch (error) {
+        console.error('Error validating image:', error);
+        resultDiv.innerHTML = '<small class="text-danger"><i class="bi bi-x-circle-fill me-1"></i>Error validating image</small>';
+    }
+}
+
+
 function removeServiceCard(serviceId, event) {
     if (event) {
         event.stopPropagation();
@@ -891,20 +1440,21 @@ function removeServiceCard(serviceId, event) {
 }
 
 function updateEmptyState() {
-    const canvas = document.getElementById('services-canvas');
-    const emptyState = document.getElementById('empty-state');
-    const serviceCards = canvas.querySelectorAll('.service-card');
-    
-    if (serviceCards.length === 0 && emptyState) {
-        emptyState.style.display = 'block';
-    } else if (emptyState) {
-        emptyState.style.display = 'none';
-    }
+    // Empty state removed - no longer needed
 }
 
 function buildTemplateConfig() {
-    const templateName = document.getElementById('template-name').value;
-    const templateDesc = document.getElementById('template-description').value;
+    console.log('buildTemplateConfig called');
+    const templateNameEl = document.getElementById('template-name');
+    const templateDescEl = document.getElementById('template-description');
+    
+    if (!templateNameEl) {
+        alert('Template name input not found! Please check the Settings tab.');
+        return false;
+    }
+    
+    const templateName = templateNameEl.value.trim();
+    const templateDesc = templateDescEl ? templateDescEl.value.trim() : '';
     
     if (!templateName) {
         alert('Template name is required! Please go to Settings tab and enter a template name.');
@@ -918,14 +1468,27 @@ function buildTemplateConfig() {
         return false;
     }
     
+    // Ensure we're using the global services object
+    const servicesToUse = window.services || services || {};
+    
+    console.log('Building config for template:', templateName);
+    console.log('Available services:', Object.keys(servicesToUse).length);
+    console.log('Services object:', servicesToUse);
+    
     // Build services config
     const servicesConfig = {};
-    Object.keys(services).forEach(serviceId => {
-        const service = services[serviceId];
-        if (!service.name) return;
+    Object.keys(servicesToUse).forEach(serviceId => {
+        const service = servicesToUse[serviceId];
+        if (!service) {
+            console.warn('Service not found:', serviceId);
+            return;
+        }
+        
+        // Use service name or default
+        const serviceName = service.name || 'New Service';
         
         const serviceConfig = {
-            name: service.name,
+            name: serviceName,
             source: service.image ? { image: service.image } : {},
             deploy: {
                 limitOverride: {
@@ -942,15 +1505,20 @@ function buildTemplateConfig() {
         };
         
         // Add variables if any
-        if (Object.keys(service.variables).length > 0) {
+        if (service.variables && Object.keys(service.variables).length > 0) {
             serviceConfig.variables = {};
             Object.keys(service.variables).forEach(key => {
                 serviceConfig.variables[key] = { value: service.variables[key] };
             });
         }
         
-        servicesConfig[service.id || serviceId] = serviceConfig;
+        // Use service ID as key
+        const key = service.id || serviceId;
+        servicesConfig[key] = serviceConfig;
+        console.log('Added service to config:', key, serviceConfig);
     });
+    
+    console.log('Total services in config:', Object.keys(servicesConfig).length);
     
     const templateConfig = {
         input: {
@@ -965,30 +1533,184 @@ function buildTemplateConfig() {
     };
     
     // Set form values
-    document.getElementById('form-template-name').value = templateName;
-    document.getElementById('form-template-description').value = templateDesc;
-    document.getElementById('form-template-config').value = JSON.stringify(templateConfig);
+    const nameField = document.getElementById('form-template-name');
+    const descField = document.getElementById('form-template-description');
+    const configField = document.getElementById('form-template-config');
+    
+    if (!nameField || !configField) {
+        console.error('Form fields not found!', { nameField: !!nameField, configField: !!configField });
+        alert('Form fields not found. Please refresh the page.');
+        return false;
+    }
+    
+    nameField.value = templateName;
+    if (descField) {
+        descField.value = templateDesc;
+    }
+    configField.value = JSON.stringify(templateConfig);
+    
+    console.log('Template config built successfully');
+    console.log('Config:', templateConfig);
     
     return true;
 }
 
 function saveTemplate() {
+    console.log('saveTemplate called');
+    console.log('Current services:', Object.keys(services).length);
+    console.log('Services object:', services);
+    
+    // Save current service data before building config
+    if (currentServiceId && services[currentServiceId]) {
+        console.log('Saving current service before template save');
+        autoSaveService();
+        // Wait a bit for autoSave to complete
+        setTimeout(() => {
+            doSaveTemplate();
+        }, 200);
+    } else {
+        console.log('No current service, proceeding with template save');
+        doSaveTemplate();
+    }
+}
+
+function doSaveTemplate() {
+    console.log('doSaveTemplate called');
+    
     if (!buildTemplateConfig()) {
+        console.error('buildTemplateConfig failed');
         return;
     }
     
     const form = document.getElementById('template-form');
-    if (form) {
-        // Create form data
-        const formData = new FormData(form);
-        
-        // Submit via HTMX
-        htmx.ajax('POST', '{% url "accounts:settings" %}?tab=template', {
-            target: '#template-content',
-            swap: 'innerHTML',
-            values: formData
-        });
+    if (!form) {
+        console.error('Template form not found!');
+        alert('Form not found. Please refresh the page.');
+        return;
     }
+    
+    // Verify form fields have values
+    const nameValue = document.getElementById('form-template-name').value;
+    const configValue = document.getElementById('form-template-config').value;
+    
+    console.log('Form values:', {
+        name: nameValue,
+        configLength: configValue ? configValue.length : 0
+    });
+    
+    if (!nameValue) {
+        alert('Template name is required!');
+        return;
+    }
+    
+    if (!configValue || configValue === '{}') {
+        alert('Template configuration is empty. Please add at least one service.');
+        return;
+    }
+    
+    // Show loading indicator
+    const createBtn = document.querySelector('button[onclick="saveTemplate()"]');
+    if (createBtn) {
+        createBtn.disabled = true;
+        const originalText = createBtn.innerHTML;
+        createBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Creating...';
+        
+        // Reset button after 10 seconds if no response
+        setTimeout(() => {
+            if (createBtn.disabled) {
+                createBtn.disabled = false;
+                createBtn.innerHTML = originalText;
+                console.warn('Button reset due to timeout');
+            }
+        }, 10000);
+    }
+    
+    // Create form data as plain object (HTMX values expects plain object, not FormData)
+    const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+    const formValues = {
+        'csrfmiddlewaretoken': csrfToken,
+        'form_type': 'template',
+        'name': document.getElementById('form-template-name').value,
+        'description': document.getElementById('form-template-description').value || '',
+        'template_config': document.getElementById('form-template-config').value
+    };
+    
+    // Log what we're sending
+    console.log('Submitting form data:');
+    Object.keys(formValues).forEach(key => {
+        if (key === 'template_config') {
+            console.log(key, ':', formValues[key].substring(0, 200) + '...');
+        } else if (key !== 'csrfmiddlewaretoken') {
+            console.log(key, ':', formValues[key]);
+        }
+    });
+    
+    // Submit via fetch (more reliable than HTMX ajax for form data)
+    fetch('{% url "accounts:settings" %}?tab=template', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrfToken,
+            'HX-Request': 'true',
+            'HX-Target': 'template-content'
+        },
+        body: new URLSearchParams(formValues).toString()
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.status);
+        }
+        return response.text();
+    })
+    .then(html => {
+        console.log('Server response received');
+        
+        // Reset button
+        if (createBtn) {
+            createBtn.disabled = false;
+            createBtn.innerHTML = '<i class="bi bi-save me-1"></i> Create Template';
+        }
+        
+        // Check if response contains error indicators
+        const hasErrors = html.includes('is-invalid') || 
+                         html.includes('alert-danger') || 
+                         html.includes('errorlist');
+        
+        // Check if response contains success indicator (Django messages)
+        const hasSuccess = html.includes('alert-success') || 
+                          html.includes('created successfully');
+        
+        if (hasErrors) {
+            console.log('Form has validation errors');
+            // Update the template content to show errors
+            const templateContent = document.getElementById('template-content');
+            if (templateContent) {
+                templateContent.innerHTML = html;
+            }
+            alert('Please fix the errors in the form.');
+        } else if (hasSuccess) {
+            console.log('Template created successfully');
+            // Redirect to template list to show updated list
+            window.location.href = '{% url "accounts:settings" %}?tab=template';
+        } else {
+            // Fallback - update content and check visually
+            console.log('Response received, updating content');
+            const templateContent = document.getElementById('template-content');
+            if (templateContent) {
+                templateContent.innerHTML = html;
+            }
+            // Redirect to refresh the page with updated template list
+            window.location.href = '{% url "accounts:settings" %}?tab=template';
+        }
+    })
+    .catch(error => {
+        console.error('Error creating template:', error);
+        if (createBtn) {
+            createBtn.disabled = false;
+            createBtn.innerHTML = '<i class="bi bi-save me-1"></i> Create Template';
+        }
+        alert('Error creating template: ' + (error.message || 'Unknown error'));
+    });
 }
 
 // Calculate navbar height and set CSS variable
@@ -1014,35 +1736,15 @@ function makeCardDraggable(cardElement, serviceId) {
     cardDragData.set(cardElement, {
         mousedownTime: 0,
         mousedownPos: { x: 0, y: 0 },
-        hasMoved: false
+        hasMoved: false,
+        isHolding: false,
+        holdTimer: null
     });
     
-    // Make drag handle draggable
-    const dragHandle = cardElement.querySelector('.service-card-drag-handle');
-    if (dragHandle) {
-        dragHandle.addEventListener('mousedown', function(e) {
-            e.stopPropagation();
-            const dragData = cardDragData.get(cardElement);
-            dragData.mousedownTime = Date.now();
-            dragData.mousedownPos.x = e.clientX;
-            dragData.mousedownPos.y = e.clientY;
-            dragData.hasMoved = false;
-            
-            draggedElement = cardElement;
-            isDragging = false;
-            
-            const rect = cardElement.getBoundingClientRect();
-            dragOffset.x = e.clientX - rect.left;
-            dragOffset.y = e.clientY - rect.top;
-            dragStartPos.x = e.clientX;
-            dragStartPos.y = e.clientY;
-        });
-    }
-    
-    // Also allow dragging from the card itself, but track it
+    // Make entire card draggable on click and hold (anywhere except remove button)
     cardElement.addEventListener('mousedown', function(e) {
-        // Don't start drag if clicking on remove button or content area
-        if (e.target.closest('.btn-remove') || e.target.closest('.service-card-content')) {
+        // Don't start drag if clicking on remove button
+        if (e.target.closest('.btn-remove')) {
             return;
         }
         
@@ -1051,15 +1753,22 @@ function makeCardDraggable(cardElement, serviceId) {
         dragData.mousedownPos.x = e.clientX;
         dragData.mousedownPos.y = e.clientY;
         dragData.hasMoved = false;
+        dragData.isHolding = true;
         
-        draggedElement = cardElement;
-        isDragging = false;
-        
-        const rect = cardElement.getBoundingClientRect();
-        dragOffset.x = e.clientX - rect.left;
-        dragOffset.y = e.clientY - rect.top;
-        dragStartPos.x = e.clientX;
-        dragStartPos.y = e.clientY;
+        // Set a timer - if held for 200ms, enable dragging
+        dragData.holdTimer = setTimeout(() => {
+            if (dragData.isHolding && !dragData.hasMoved) {
+                // User is holding - enable dragging
+                draggedElement = cardElement;
+                isDragging = false;
+                
+                const rect = cardElement.getBoundingClientRect();
+                dragOffset.x = e.clientX - rect.left;
+                dragOffset.y = e.clientY - rect.top;
+                dragStartPos.x = e.clientX;
+                dragStartPos.y = e.clientY;
+            }
+        }, 200);
     });
     
     // Content area already has onclick handler from HTML
@@ -1082,6 +1791,13 @@ function handleMouseMove(e) {
         isDragging = true;
         draggedElement.classList.add('dragging');
         
+        // Clear any hold timer
+        const dragData = cardDragData.get(draggedElement);
+        if (dragData && dragData.holdTimer) {
+            clearTimeout(dragData.holdTimer);
+            dragData.holdTimer = null;
+        }
+        
         // Store base position when drag starts
         basePosition.x = parseFloat(draggedElement.style.left) || 0;
         basePosition.y = parseFloat(draggedElement.style.top) || 0;
@@ -1095,9 +1811,9 @@ function handleMouseMove(e) {
         }
         
         // Mark that this card has moved - prevent click
-        const dragData = cardDragData.get(draggedElement);
         if (dragData) {
             dragData.hasMoved = true;
+            dragData.isHolding = false;
         }
         
         // Disable click when dragging starts
@@ -1158,15 +1874,27 @@ document.addEventListener('mouseup', function(e) {
                 draggedElement.style.top = finalY + 'px';
                 draggedElement.style.transform = '';
                 
-                // Update service position
+                // Update service position in memory
                 const serviceId = draggedElement.getAttribute('data-service-id');
                 if (serviceId && services[serviceId]) {
                     services[serviceId].position = { x: finalX, y: finalY };
+                    
+                    // Save position to backend
+                    savePositionToBackend(serviceId, finalX, finalY);
                 }
             }
         }
         
         // Clean up drag state
+        const dragData = cardDragData.get(draggedElement);
+        if (dragData) {
+            if (dragData.holdTimer) {
+                clearTimeout(dragData.holdTimer);
+                dragData.holdTimer = null;
+            }
+            dragData.isHolding = false;
+        }
+        
         const cardContent = draggedElement.querySelector('.service-card-content');
         if (cardContent) {
             delete cardContent.dataset.dragging;
@@ -1181,13 +1909,11 @@ document.addEventListener('mouseup', function(e) {
         
         // If we were dragging, mark it so click doesn't fire
         if (wasDragging) {
-            const dragData = cardDragData.get(draggedElement);
             if (dragData) {
                 dragData.hasMoved = true;
             }
         } else {
             // If we weren't dragging, reset so click can work
-            const dragData = cardDragData.get(draggedElement);
             if (dragData) {
                 dragData.hasMoved = false;
             }
@@ -1199,20 +1925,76 @@ document.addEventListener('mouseup', function(e) {
             isDragging = false;
         }, 100);
     } else {
+        // Clean up any hold timers if mouse is released without dragging
+        document.querySelectorAll('.service-card').forEach(card => {
+            const dragData = cardDragData.get(card);
+            if (dragData && dragData.holdTimer) {
+                clearTimeout(dragData.holdTimer);
+                dragData.holdTimer = null;
+                dragData.isHolding = false;
+            }
+        });
         isDragging = false;
     }
 });
 
+// Function to save position to backend
+async function savePositionToBackend(serviceId, x, y) {
+    if (!templateId) {
+        console.warn('No template ID available for position save');
+        return;
+    }
+    
+    try {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || 
+                          getCookie('csrftoken');
+        
+        const response = await fetch('/service/update/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                template_id: templateId,
+                service_id: serviceId,
+                position: { x: x, y: y }
+            })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            console.log('Position saved:', serviceId, x, y);
+        } else {
+            console.error('Error saving position:', data.error);
+        }
+    } catch (error) {
+        console.error('Error saving position:', error);
+    }
+}
+
 // This function is already defined above - this is just to ensure it's available
 
 // Initialize empty state on load and hide sidebar
-document.addEventListener('DOMContentLoaded', function() {
+// Use HTMX afterSwap event for proper initialization
+function initializeTemplateEditor() {
+    console.log('Initializing template editor...');
+    
     setNavbarHeight();
-    updateEmptyState();
     hideSidebar();
     
-    // Recalculate navbar height on resize
-    window.addEventListener('resize', setNavbarHeight);
+    // Load existing services if template ID is available
+    if (templateId) {
+        loadServicesFromBackend();
+    } else {
+        updateEmptyState();
+    }
+    
+    // Only add resize listener once
+    if (!window.templateEditorResizeListenerAdded) {
+        window.templateEditorResizeListenerAdded = true;
+        window.addEventListener('resize', setNavbarHeight);
+    }
     
     // Make existing cards draggable (if any)
     document.querySelectorAll('.service-card').forEach(card => {
@@ -1238,7 +2020,152 @@ document.addEventListener('DOMContentLoaded', function() {
     window.editServiceSource = editServiceSource;
     window.updateServiceName = updateServiceName;
     window.autoSaveService = autoSaveService;
+    
+    console.log('Template editor initialized');
+}
+
+// Listen for HTMX afterSwap event to initialize after content loads
+document.body.addEventListener('htmx:afterSwap', function(evt) {
+    // Check if the swapped content is the template editor
+    if (evt.detail.target.id === 'template-content' || evt.detail.target.querySelector('#template-editor-full')) {
+        console.log('Template editor content swapped, initializing...');
+        // Small delay to ensure DOM is fully ready
+        setTimeout(initializeTemplateEditor, 50);
+    }
 });
+
+// Listen for HTMX beforeSwap to cleanup when leaving template editor
+document.body.addEventListener('htmx:beforeSwap', function(evt) {
+    // If we're swapping out the template editor, cleanup
+    if (evt.detail.target.id === 'template-content' && evt.detail.target.querySelector('#template-editor-full')) {
+        console.log('Cleaning up template editor...');
+        // Reset template ID from context
+        if (typeof window.templateIdFromContext !== 'undefined') {
+            delete window.templateIdFromContext;
+        }
+    }
+});
+
+// Also initialize on DOM ready for direct page loads
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeTemplateEditor);
+} else {
+    // DOM already loaded, check if template editor exists
+    if (document.getElementById('template-editor-full')) {
+        initializeTemplateEditor();
+    }
+}
+
+// Function to load services from backend
+async function loadServicesFromBackend() {
+    if (!templateId) {
+        console.warn('No template ID available');
+        updateEmptyState();
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/template/${templateId}/services/`);
+        const data = await response.json();
+        
+        if (data.success && data.services && data.services.length > 0) {
+            console.log('Loading services from backend:', data.services);
+            
+            // Clear existing services
+            services = {};
+            window.services = services;
+            serviceCounter = 0;
+            
+            // Load each service
+            data.services.forEach(serviceData => {
+                // Extract counter from service_id (e.g., "service_1" -> 1)
+                const counterMatch = serviceData.service_id.match(/\d+$/);
+                if (counterMatch) {
+                    const counter = parseInt(counterMatch[0]);
+                    if (counter > serviceCounter) {
+                        serviceCounter = counter;
+                    }
+                }
+                
+                // Add service to services object
+                services[serviceData.service_id] = {
+                    id: serviceData.service_id,
+                    name: serviceData.name,
+                    image: serviceData.image,
+                    cpu: serviceData.cpu,
+                    memory: serviceData.memory,
+                    variables: serviceData.variables,
+                    networking: serviceData.networking,
+                    position: serviceData.position,
+                    has_credentials: serviceData.has_credentials || false,
+                    registry_username: serviceData.registry_username || ''
+                };
+                
+                // Render the service card
+                renderServiceCard(serviceData.service_id);
+            });
+            
+            window.services = services;
+            window.serviceCounter = serviceCounter;
+            
+            console.log('Services loaded:', Object.keys(services).length);
+            updateEmptyState();
+        } else {
+            console.log('No services found for this template');
+            updateEmptyState();
+        }
+    } catch (error) {
+        console.error('Error loading services:', error);
+        updateEmptyState();
+    }
+}
+
+// Function to render a service card on the canvas
+function renderServiceCard(serviceId) {
+    const canvas = document.getElementById('services-canvas');
+    const service = services[serviceId];
+    
+    if (!canvas || !service) {
+        console.error('Canvas or service not found');
+        return;
+    }
+    
+    // Create service card HTML
+    const cardHtml = `
+        <div class="service-card railway-card" 
+             data-service-id="${serviceId}"
+             style="left: ${service.position.x}px; top: ${service.position.y}px;">
+            <button 
+                type="button" 
+                class="btn btn-sm btn-link text-danger p-0 btn-remove"
+                onclick="removeServiceCard('${serviceId}', event)"
+                title="Remove service">
+                <i class="bi bi-x-lg"></i>
+            </button>
+            <div class="service-card-content" onclick="handleCardClick('${serviceId}', event)">
+                <div class="service-card-icon-wrapper">
+                    <i class="bi bi-box service-card-icon"></i>
+                </div>
+                <div class="service-card-info">
+                    <div class="service-card-name">${service.name}</div>
+                    <div class="service-card-subtitle">${service.image || 'No image'}</div>
+                </div>
+                <div class="service-card-badge">
+                    <i class="bi bi-list-ul"></i>
+                    <span>No config required</span>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    canvas.insertAdjacentHTML('beforeend', cardHtml);
+    
+    // Make card draggable
+    const cardElement = canvas.querySelector(`[data-service-id="${serviceId}"]`);
+    if (cardElement && typeof makeCardDraggable === 'function') {
+        makeCardDraggable(cardElement, serviceId);
+    }
+}
 
 function hideSidebar() {
     const sidebar = document.querySelector('.settings-container .col-md-3');
@@ -1333,24 +2260,21 @@ hideSidebar();
     background: #1a1a1a;
     border: 2px solid #2d2d2d;
     border-radius: 8px;
-    padding: 0.75rem;
+    padding: 1rem;
     transition: border-color 0.2s, box-shadow 0.2s;
     cursor: grab;
     position: absolute;
-    width: 180px;
+    width: 200px;
+    min-height: 140px;
     user-select: none;
     z-index: 10;
     will-change: transform;
+    display: flex;
+    flex-direction: column;
 }
 
 .service-card:active {
     cursor: grabbing;
-}
-
-.service-card.dragging {
-    transition: none;
-    will-change: transform;
-    pointer-events: none;
 }
 
 .service-card:hover {
@@ -1359,9 +2283,12 @@ hideSidebar();
 }
 
 .service-card.dragging {
-    opacity: 0.8;
+    opacity: 0.85;
     z-index: 1000;
-    cursor: grabbing;
+    cursor: grabbing !important;
+    transition: none;
+    will-change: transform;
+    pointer-events: none;
 }
 
 .service-card.selected {
@@ -1372,38 +2299,81 @@ hideSidebar();
 .service-card-content {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.625rem;
     cursor: pointer;
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+    justify-content: space-between;
+    padding: 0.125rem 0;
+}
+
+.service-card-icon-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
 }
 
 .service-card-icon {
-    font-size: 1.25rem;
+    font-size: 1.75rem;
     color: #ffffff;
-    margin-bottom: 0.25rem;
+    display: block;
+    opacity: 0.9;
 }
 
 .service-card-info {
-    flex: 1;
+    flex: 0 1 auto;
+    min-width: 0;
+    text-align: center;
+    flex-shrink: 0;
 }
 
 .service-card-name {
     color: #ffffff;
     font-weight: 600;
     font-size: 0.875rem;
-    margin-bottom: 0.125rem;
+    margin-bottom: 0.25rem;
+    line-height: 1.3;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    text-align: center;
+    display: block;
 }
 
 .service-card-subtitle {
     color: #9ca3af;
     font-size: 0.75rem;
+    line-height: 1.4;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    display: block;
+    text-align: center;
 }
 
 .service-card-badge {
     display: flex;
     align-items: center;
+    justify-content: center;
     color: #9ca3af;
-    font-size: 0.625rem;
-    margin-top: 0.25rem;
+    font-size: 0.6875rem;
+    margin-top: auto;
+    gap: 0.25rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+}
+
+.service-card-badge i {
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+
+.service-card-badge span {
+    font-size: 0.6875rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .service-card .btn-remove {
@@ -1423,25 +2393,6 @@ hideSidebar();
     justify-content: center;
 }
 
-.service-card-drag-handle {
-    position: absolute;
-    top: 0.25rem;
-    left: 0.25rem;
-    color: #6c757d;
-    font-size: 0.875rem;
-    opacity: 0.5;
-    z-index: 15;
-    cursor: grab;
-}
-
-.service-card:hover .service-card-drag-handle {
-    opacity: 1;
-}
-
-.service-card.dragging .service-card-drag-handle {
-    opacity: 1;
-    color: #6366f1;
-}
 
 .service-card:hover .btn-remove {
     opacity: 1;
@@ -1471,21 +2422,6 @@ hideSidebar();
     color: #6c757d;
     font-size: 0.875rem;
     margin-top: 0.5rem;
-}
-
-#empty-state {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 100%;
-    color: #ffffff;
-    pointer-events: none;
-    z-index: 1;
-}
-
-#empty-state .text-muted {
-    color: #9ca3af !important;
 }
 
 .offcanvas {
@@ -1570,20 +2506,24 @@ hideSidebar();
     margin-bottom: 0;
     padding-left: 1.5rem;
     padding-right: 1.5rem;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
     gap: 0.5rem;
 }
 
 .nav-tabs .nav-item {
-    margin-bottom: -1px;
+    margin-bottom: 0;
 }
 
 .nav-tabs .nav-link {
     color: var(--gray-700);
     border-color: transparent;
-    padding: 0.75rem 1rem;
+    padding: 0.5rem 1rem;
     border-radius: 0;
     transition: all 0.2s;
     font-weight: 400;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
 }
 
 .nav-tabs .nav-link:hover {
@@ -1595,15 +2535,15 @@ hideSidebar();
 .nav-tabs .nav-link.active {
     color: var(--black);
     background-color: transparent;
-    border-color: var(--gray-200) var(--gray-200) transparent;
-    border-bottom-color: var(--white) !important;
+    border-color: transparent;
+    border-bottom-color: var(--black);
     font-weight: 500;
-    border-bottom-width: 2px;
 }
 
 .tab-content {
     color: var(--black);
     min-height: 400px;
+    padding-top: 1rem;
 }
 
 #service-offcanvas h6 {
@@ -1752,6 +2692,98 @@ hideSidebar();
 
 #service-offcanvas .mb-3 {
     margin-bottom: 1.5rem !important;
+}
+
+/* Settings Single Page Styles */
+.settings-single-page {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.settings-filter-bar {
+    z-index: 10;
+}
+
+.settings-filter-bar input {
+    background-color: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+.settings-filter-bar input:focus {
+    outline: none;
+    border-color: var(--black);
+    background-color: var(--white);
+    box-shadow: none;
+}
+
+.settings-scroll-content {
+    overflow-y: auto;
+    flex: 1;
+    max-width: 700px;
+}
+
+.settings-section-block {
+    scroll-margin-top: 80px;
+    position: relative;
+}
+
+/* Vertical line connecting icons - from bottom of icon to next icon */
+.settings-section-block:not(.last-section)::before {
+    content: '';
+    position: absolute;
+    left: 17px;
+    top: 36px;
+    height: calc(100% + 23px);
+    width: 2px;
+    background-color: var(--gray-300, #d1d5db);
+    z-index: 0;
+}
+
+.settings-icon-wrapper {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--white);
+    border: 2px solid var(--gray-300, #d1d5db);
+    border-radius: 50%;
+    margin-right: 1rem;
+    z-index: 1;
+}
+
+.settings-section-icon {
+    font-size: 1.125rem;
+    color: var(--gray-700);
+}
+
+.settings-section-block h5 {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.settings-section-block h6 {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.settings-section-content {
+    padding-left: 3rem;
+}
+
+.networking-item {
+    background-color: var(--gray-50);
+    transition: all 0.2s;
+}
+
+.networking-item:hover {
+    background-color: var(--gray-100);
 }
 
 @media (max-width: 768px) {

@@ -87,3 +87,75 @@ class Template(models.Model):
     def __str__(self):
         return f"{self.name} - {self.user.email}"
 
+
+class Service(models.Model):
+    """Store individual services within templates"""
+    template = models.ForeignKey(
+        Template,
+        on_delete=models.CASCADE,
+        related_name='services'
+    )
+    service_id = models.CharField(
+        max_length=255,
+        help_text="Service identifier (e.g., service_1)"
+    )
+    name = models.CharField(
+        max_length=255,
+        default='New Service',
+        help_text="Service name"
+    )
+    image = models.CharField(
+        max_length=500,
+        blank=True,
+        null=True,
+        help_text="Docker image or source"
+    )
+    # Docker registry credentials
+    registry_username = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Docker registry username"
+    )
+    registry_password = models.CharField(
+        max_length=500,
+        blank=True,
+        null=True,
+        help_text="Docker registry password (encrypted)"
+    )
+    cpu = models.IntegerField(
+        default=8,
+        help_text="CPU allocation"
+    )
+    memory = models.IntegerField(
+        default=8,
+        help_text="Memory in GB"
+    )
+    variables = models.JSONField(
+        default=dict,
+        help_text="Environment variables"
+    )
+    networking = models.JSONField(
+        default=dict,
+        help_text="Networking configuration"
+    )
+    position_x = models.FloatField(
+        default=0,
+        help_text="X position on canvas"
+    )
+    position_y = models.FloatField(
+        default=0,
+        help_text="Y position on canvas"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "Service"
+        verbose_name_plural = "Services"
+        unique_together = ['template', 'service_id']
+        ordering = ['created_at']
+    
+    def __str__(self):
+        return f"{self.name} ({self.template.name})"
+
