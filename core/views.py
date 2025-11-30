@@ -1,9 +1,9 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django.urls import reverse
-from accounts.models import Template, RailwaySettings
+from accounts.models import Project, ProjectService, Template, RailwaySettings
 import random
 
 # Breaking Bad character names for random project naming
@@ -21,7 +21,7 @@ BREAKING_BAD_NAMES = [
 def generate_project_name(user):
     """Generate a unique Breaking Bad-inspired project name for a user"""
     existing_names = set(
-        Template.objects.filter(user=user, is_active=True).values_list('name', flat=True)
+        Project.objects.filter(user=user, is_active=True).values_list('name', flat=True)
     )
     
     available_names = [name for name in BREAKING_BAD_NAMES if name not in existing_names]
@@ -43,19 +43,13 @@ def home_view(request):
 
 @login_required
 def dashboard_view(request):
-    """Dashboard view for authenticated users"""
-    # Get user's templates/projects
-    projects = Template.objects.filter(user=request.user, is_active=True)
-    
-    # Add service count to each project
-    projects_with_counts = []
-    for project in projects:
-        project.services_count = project.services.count()
-        projects_with_counts.append(project)
+    """Dashboard view - shows user's Projects (actual deployments)"""
+    # Get user's projects (actual deployments)
+    projects = Project.objects.filter(user=request.user, is_active=True)
     
     context = {
         'user': request.user,
-        'projects': projects_with_counts,
+        'projects': projects,
     }
     
     # If HTMX request, return only the content partial
@@ -74,24 +68,24 @@ def create_project(request):
     # Generate a random project name
     project_name = generate_project_name(request.user)
     
-    # Create the project/template
-    project = Template.objects.create(
+    # Create the Project (actual deployment entity)
+    project = Project.objects.create(
         user=request.user,
         name=project_name,
         description=f"Project created by {request.user.email}",
-        template_config={"input": {"serializedConfig": {"services": {}}, "workspaceId": None, "templateId": None, "environmentId": None, "projectId": None}}
+        status='draft'
     )
     
     # Get railway settings for the editor
     railway_settings, _ = RailwaySettings.objects.get_or_create(user=request.user)
     
     context = {
-        'template_action': 'create',
-        'template_id': project.id,
-        'template_name': project.name,
-        'template_description': project.description or '',
+        'project': project,
+        'project_id': project.id,
+        'project_name': project.name,
+        'project_description': project.description or '',
         'settings': railway_settings,
-        'active_tab': 'template',
+        'is_project': True,  # Flag to indicate this is a Project, not Template
     }
     
     # For HTMX requests, return the project editor
@@ -110,18 +104,16 @@ def create_project(request):
 @login_required
 def project_view(request, project_id):
     """View/Edit a project"""
-    from django.shortcuts import get_object_or_404
-    
-    project = get_object_or_404(Template, id=project_id, user=request.user, is_active=True)
+    project = get_object_or_404(Project, id=project_id, user=request.user, is_active=True)
     railway_settings, _ = RailwaySettings.objects.get_or_create(user=request.user)
     
     context = {
-        'template_action': 'create',
-        'template_id': project.id,
-        'template_name': project.name,
-        'template_description': project.description or '',
+        'project': project,
+        'project_id': project.id,
+        'project_name': project.name,
+        'project_description': project.description or '',
         'settings': railway_settings,
-        'active_tab': 'template',
+        'is_project': True,
     }
     
     # For HTMX requests, return just the editor
@@ -132,4 +124,116 @@ def project_view(request, project_id):
     
     # Full page render
     return render(request, 'core/project.html', context)
+
+
+# =============================================================================
+# PROJECT SERVICE API ENDPOINTS
+# =============================================================================
+
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+import json
+
+
+@login_required
+@require_http_methods(["POST"])
+def create_project_service(request):
+    """Create or update a service in a project"""
+    try:
+        data = json.loads(request.body)
+        project_id = data.get('project_id')
+        service_id = data.get('service_id')
+        
+        # Get the project
+        project = get_object_or_404(Project, id=project_id, user=request.user)
+        
+        # Create or update service
+        service, created = ProjectService.objects.update_or_create(
+            project=project,
+            service_id=service_id,
+            defaults={
+                'name': data.get('name', 'New Service'),
+                'image': data.get('image', ''),
+                'cpu': data.get('cpu', 8),
+                'memory': data.get('memory', 8),
+                'variables': data.get('variables', {}),
+                'networking': data.get('networking', {}),
+                'position_x': data.get('position', {}).get('x', 0),
+                'position_y': data.get('position', {}).get('y', 0),
+            }
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'service_id': service.service_id,
+            'id': service.id,
+            'created': created,
+            'message': 'Service created' if created else 'Service updated'
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)
+
+
+@login_required
+@require_http_methods(["GET"])
+def get_project_services(request, project_id):
+    """Get all services for a project"""
+    try:
+        project = get_object_or_404(Project, id=project_id, user=request.user)
+        services = ProjectService.objects.filter(project=project)
+        
+        services_data = []
+        for service in services:
+            services_data.append({
+                'id': service.id,
+                'service_id': service.service_id,
+                'name': service.name,
+                'image': service.image or '',
+                'cpu': service.cpu,
+                'memory': service.memory,
+                'variables': service.variables,
+                'networking': service.networking,
+                'status': service.status,
+                'position': {
+                    'x': service.position_x,
+                    'y': service.position_y
+                }
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'services': services_data
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)
+
+
+@login_required
+@require_http_methods(["POST"])
+def delete_project_service(request, project_id, service_id):
+    """Delete a service from a project"""
+    try:
+        project = get_object_or_404(Project, id=project_id, user=request.user)
+        service = get_object_or_404(ProjectService, project=project, service_id=service_id)
+        
+        service.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Service deleted'
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)
 

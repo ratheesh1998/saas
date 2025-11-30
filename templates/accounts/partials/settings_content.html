@@ -3,9 +3,9 @@
 <div class="settings-container">
     <div class="row g-0">
         <!-- Sidebar -->
-        <div class="col-md-3 border-end bg-light" style="min-height: calc(100vh - 200px);">
+        <div class="col-md-3 border-end" style="min-height: calc(100vh - 200px); background-color: var(--bg-secondary); border-color: var(--border-subtle) !important;">
             <div class="p-3">
-                <h5 class="mb-3 text-muted small text-uppercase">Settings</h5>
+                <h5 class="mb-3 small text-uppercase" style="color: var(--text-tertiary);">Settings</h5>
                 <ul class="nav nav-pills flex-column" role="tablist">
                     <li class="nav-item mb-2">
                         <button 
@@ -215,7 +215,7 @@
 
 <style>
     .settings-container .nav-link {
-        color: #495057;
+        color: var(--text-secondary);
         border-radius: 6px;
         padding: 0.5rem 1rem;
         transition: all 0.2s;
@@ -223,22 +223,22 @@
     }
     
     .settings-container .nav-link:hover {
-        background-color: #e9ecef;
-        color: #212529;
+        background-color: var(--bg-tertiary);
+        color: var(--text-primary);
     }
     
     .settings-container .nav-link.active {
-        background-color: #000000 !important;
-        color: #ffffff !important;
+        background-color: var(--accent-primary) !important;
+        color: var(--bg-primary) !important;
     }
     
     .settings-container .nav-link.active:hover {
-        background-color: #212529 !important;
-        color: #ffffff !important;
+        background-color: var(--accent-hover) !important;
+        color: var(--bg-primary) !important;
     }
     
     .settings-container .nav-link.active i {
-        color: #ffffff !important;
+        color: var(--bg-primary) !important;
     }
     
     .settings-container.template-editor-mode {

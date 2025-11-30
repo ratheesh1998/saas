@@ -1,58 +1,60 @@
-<!-- Dashboard Header -->
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2 class="mb-0">Projects</h2>
-        <p class="text-muted mb-0 small">{{ projects|length }} project{{ projects|length|pluralize }}</p>
-    </div>
-    <button 
-        type="button" 
-        class="btn btn-primary d-flex align-items-center gap-2"
-        data-bs-toggle="modal" 
-        data-bs-target="#newProjectModal">
-        <i class="bi bi-plus-lg"></i> New
-    </button>
-</div>
-
-<!-- Projects Grid -->
-{% if projects %}
-<div class="row g-4">
-    {% for project in projects %}
-    <div class="col-md-6 col-lg-4">
-        <div class="project-card" 
-             hx-get="{% url 'core:project_view' project.id %}"
-             hx-target="#main-content"
-             hx-swap="innerHTML"
-             hx-push-url="{% url 'core:project_view' project.id %}">
-            <h5 class="project-card-title">{{ project.name }}</h5>
-            <p class="project-card-services">
-                {% if project.services_count > 0 %}
-                    {{ project.services_count }} service{{ project.services_count|pluralize }}
-                {% else %}
-                    empty project
-                {% endif %}
-            </p>
+<div class="dashboard-content-wrapper">
+    <!-- Dashboard Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">Projects</h2>
+            <p class="text-muted mb-0 small">{{ projects|length }} project{{ projects|length|pluralize }}</p>
         </div>
+        <button 
+            type="button" 
+            class="btn btn-primary d-flex align-items-center gap-2"
+            data-bs-toggle="modal" 
+            data-bs-target="#newProjectModal">
+            <i class="bi bi-plus-lg"></i> New
+        </button>
     </div>
-    {% endfor %}
-</div>
-{% else %}
-<!-- Empty State -->
-<div class="empty-state">
-    <div class="empty-state-icon">
-        <i class="bi bi-folder2-open"></i>
+
+    <!-- Projects Grid -->
+    {% if projects %}
+    <div class="row g-4">
+        {% for project in projects %}
+        <div class="col-md-6 col-lg-4">
+            <div class="project-card" 
+                 hx-get="{% url 'core:project_view' project.id %}"
+                 hx-target="#main-content"
+                 hx-swap="innerHTML"
+                 hx-push-url="{% url 'core:project_view' project.id %}">
+                <h5 class="project-card-title">{{ project.name }}</h5>
+                <p class="project-card-services">
+                    {% if project.services_count > 0 %}
+                        {{ project.services_count }} service{{ project.services_count|pluralize }}
+                    {% else %}
+                        empty project
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        {% endfor %}
     </div>
-    <h4>No projects yet</h4>
-    <p class="text-muted mb-4">Get started by creating your first project</p>
-    <button 
-        type="button" 
-        class="btn btn-primary d-flex align-items-center gap-2 mx-auto"
-        hx-post="{% url 'core:create_project' %}"
-        hx-target="#main-content"
-        hx-swap="innerHTML">
-        <i class="bi bi-plus-lg"></i> Create Project
-    </button>
+    {% else %}
+    <!-- Empty State -->
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <i class="bi bi-folder2-open"></i>
+        </div>
+        <h4>No projects yet</h4>
+        <p class="text-muted mb-4">Get started by creating your first project</p>
+        <button 
+            type="button" 
+            class="btn btn-primary d-flex align-items-center gap-2 mx-auto"
+            hx-post="{% url 'core:create_project' %}"
+            hx-target="#main-content"
+            hx-swap="innerHTML">
+            <i class="bi bi-plus-lg"></i> Create Project
+        </button>
+    </div>
+    {% endif %}
 </div>
-{% endif %}
 
 <!-- New Project Modal -->
 <div class="modal fade" id="newProjectModal" tabindex="-1" aria-labelledby="newProjectModalLabel" aria-hidden="true">
@@ -124,13 +126,20 @@
 </div>
 
 <style>
+/* Dashboard Content Wrapper */
+.dashboard-content-wrapper {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+}
+
 /* Project Cards - Light theme matching project style */
 .project-card {
     background: var(--white);
     border: 1px solid var(--gray-200);
     padding: 1.75rem;
     cursor: pointer;
-    transition: border-color 0.2s;
+    transition: all 0.2s ease;
     min-height: 120px;
     display: flex;
     flex-direction: column;
@@ -151,6 +160,8 @@
 
 .project-card:hover {
     border-color: var(--black);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
 }
 
 .project-card:hover::before {
@@ -176,20 +187,33 @@
 .empty-state {
     text-align: center;
     padding: 5rem 2rem;
-    border: 1px solid var(--gray-200);
-    background: var(--white);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.02);
 }
 
 .empty-state-icon {
     font-size: 3rem;
-    color: var(--gray-400);
+    color: rgba(255, 255, 255, 0.3);
     margin-bottom: 1.5rem;
 }
 
 .empty-state h4 {
-    color: var(--black);
+    color: var(--white);
     font-weight: 600;
     margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* Dashboard Header Text */
+.dashboard-content-wrapper h2 {
+    color: var(--white);
+}
+
+.dashboard-content-wrapper .text-muted {
+    color: rgba(255, 255, 255, 0.6) !important;
 }
 
 /* New Project Modal - Light theme */
@@ -305,6 +329,20 @@
 </style>
 
 <script>
+// Enable full viewport layout for dashboard
+document.body.classList.add('full-viewport-layout');
+
+// Clean up when navigating away
+document.body.addEventListener('htmx:beforeSwap', function(evt) {
+    if (evt.detail.target.id === 'main-content') {
+        // Check if we're navigating away from dashboard
+        const currentPath = window.location.pathname;
+        if (currentPath.includes('/dashboard') && !evt.detail.xhr.responseURL.includes('/dashboard')) {
+            document.body.classList.remove('full-viewport-layout');
+        }
+    }
+});
+
 // Close modal helper
 function closeNewProjectModal() {
     const modalEl = document.getElementById('newProjectModal');

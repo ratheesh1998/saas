@@ -1,2 +1,1437 @@
-{% include 'accounts/partials/template_editor.html' %}
+{% load crispy_forms_tags %}
 
+{% if project_id %}
+<script>
+    window.projectIdFromContext = {{ project_id }};
+    window.isProject = true;  // Flag to use Project APIs instead of Template APIs
+</script>
+{% endif %}
+
+<div id="project-editor-full" class="template-editor-full">
+    <!-- Services Canvas Container -->
+    <div id="architecture-tab" class="main-content-area">
+        <div class="services-canvas-wrapper">
+            <!-- Add Button (Top Right) -->
+            <div class="add-button-container">
+                <button 
+                    type="button" 
+                    class="btn btn-dark text-white"
+                    onclick="addProjectServiceCard()">
+                    <i class="bi bi-plus-circle me-1"></i> ADD NEW
+                </button>
+            </div>
+            
+            <!-- Services Grid Canvas -->
+            <div id="services-canvas" class="services-canvas">
+                <!-- Service cards will be added here dynamically -->
+            </div>
+        </div>
+        
+        <!-- Off-Canvas Panel for Service Details -->
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="service-offcanvas" aria-labelledby="service-offcanvas-label" data-bs-backdrop="false" data-bs-scroll="true">
+            <div class="offcanvas-header border-bottom">
+                <div class="d-flex align-items-center flex-grow-1">
+                    <i class="bi bi-box service-offcanvas-icon me-2" id="offcanvas-service-icon"></i>
+                    <div class="flex-grow-1">
+                        <input 
+                            type="text" 
+                            class="offcanvas-title-input" 
+                            id="offcanvas-service-name-input" 
+                            value="Service Name"
+                            placeholder="Enter service name"
+                            onchange="updateProjectServiceName(this.value)"
+                            onkeypress="if(event.key === 'Enter') { this.blur(); }"
+                            onfocus="this.classList.add('editing')"
+                            onblur="this.classList.remove('editing'); updateProjectServiceName(this.value);">
+                    </div>
+                </div>
+                <button type="button" class="offcanvas-close-btn" data-bs-dismiss="offcanvas" aria-label="Close" onclick="closeOffcanvas(event)">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="offcanvas-body p-0">
+                <!-- Service Tabs -->
+                <ul class="nav nav-tabs border-bottom px-3 pt-2" id="service-tabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active service-tab-link" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview-pane" type="button" role="tab">
+                            Overview
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link service-tab-link" id="variables-tab" data-bs-toggle="tab" data-bs-target="#variables-pane" type="button" role="tab">
+                            Variables
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link service-tab-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings-pane" type="button" role="tab">
+                            Settings
+                        </button>
+                    </li>
+                </ul>
+                
+                <!-- Tab Content -->
+                <div class="tab-content px-3 py-3" id="service-tab-content">
+                    <!-- Overview Tab -->
+                    <div class="tab-pane fade show active" id="overview-pane" role="tabpanel">
+                        <div class="mb-5">
+                            <h6 class="mb-4 fw-semibold"><i class="bi bi-code-square me-2"></i> Source</h6>
+                            <div class="card" style="background-color: #45454d !important; border: 1px solid var(--border-default) !important;">
+                                <div class="card-body p-4">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-box me-3" style="font-size: 1.75rem; color: var(--text-primary) !important;"></i>
+                                            <div>
+                                                <div class="fw-bold mb-1" id="offcanvas-service-name" style="font-size: 1rem; color: var(--text-primary) !important;">Service Name</div>
+                                                <small class="text-muted" id="offcanvas-service-image" style="color: var(--text-secondary) !important;">No image</small>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="editServiceSource()">
+                                            <i class="bi bi-pencil me-1"></i> Edit
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-5">
+                            <h6 class="mb-4 fw-semibold"><i class="bi bi-slash-circle me-2"></i> Environment Variables</h6>
+                            <div id="offcanvas-variables-list" class="mb-3">
+                                <p class="text-muted mb-0">No variables added to this service.</p>
+                            </div>
+                            <button type="button" class="btn btn-primary btn-sm" onclick="addVariable()" style="background: var(--black); border-color: var(--black); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500;">
+                                <i class="bi bi-plus-circle me-1"></i> Add variables
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Variables Tab -->
+                    <div class="tab-pane fade" id="variables-pane" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h6 class="mb-0 fw-semibold">Service Variables</h6>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleRawEditor()" style="border-color: var(--gray-300); color: var(--gray-700); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500;">
+                                    <i class="bi bi-code me-1"></i> RAW EDITOR
+                                </button>
+                                <button type="button" class="btn btn-sm btn-primary" onclick="showAddVariableForm()" style="background: var(--accent-primary); border-color: var(--accent-primary); color: var(--bg-primary); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500;">
+                                    <i class="bi bi-plus-circle me-1"></i> NEW VARIABLE
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Add Variable Form (Hidden by default) -->
+                        <div id="add-variable-form" class="add-variable-form" style="display: none;">
+                            <div class="variable-input-row">
+                                <div class="variable-name-wrapper">
+                                    <input type="text" 
+                                           class="variable-name-input" 
+                                           id="new-variable-name" 
+                                           placeholder="VARIABLE_NAME"
+                                           onkeypress="if(event.key === 'Enter') saveNewVariable()">
+                                    <button type="button" class="add-reference-btn" onclick="showReferenceDropdown()">
+                                        <i class="bi bi-chevron-down me-1"></i> Add Reference
+                                    </button>
+                                </div>
+                                <div class="variable-value-wrapper">
+                                    <input type="text" 
+                                           class="variable-value-input" 
+                                           id="new-variable-value" 
+                                           placeholder="VALUE or ${{REF}}"
+                                           onkeypress="if(event.key === 'Enter') saveNewVariable()">
+                                    <button type="button" class="variable-json-btn" onclick="toggleJsonMode()">
+                                        <i class="bi bi-braces"></i>
+                                    </button>
+                                </div>
+                                <div class="variable-actions">
+                                    <button type="button" class="btn-add-variable" onclick="saveNewVariable()" title="Add variable">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                    <button type="button" class="btn-cancel-variable" onclick="cancelAddVariable()" title="Cancel">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Raw Editor (Hidden by default) -->
+                        <div id="raw-editor-container" style="display: none;">
+                            <textarea class="form-control font-monospace raw-variables-textarea" 
+                                      rows="12" 
+                                      id="raw-variables-editor" 
+                                      placeholder='{"KEY": "value", "ANOTHER_KEY": "another_value"}'></textarea>
+                            <div class="d-flex gap-2 mt-3">
+                                <button type="button" class="btn btn-sm btn-dark" onclick="saveRawVariables()" style="background: var(--black); border-color: var(--black); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500;">
+                                    <i class="bi bi-check-lg me-1"></i> Save
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleRawEditor()" style="border-color: var(--gray-300); color: var(--gray-700); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500;">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Variables List -->
+                        <div id="variables-editor">
+                            <div id="variables-list-container">
+                                <p class="text-muted no-variables-msg">No Service Variables</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Settings Tab -->
+                    <div class="tab-pane fade" id="settings-pane" role="tabpanel">
+                        <div class="mb-5">
+                            <h6 class="mb-4 fw-semibold"><i class="bi bi-code-square me-2"></i> Source</h6>
+                            <div class="mb-3">
+                                <label class="form-label fw-medium mb-2">Docker Image</label>
+                                <input type="text" class="form-control" id="service-source-image" placeholder="e.g., nginx:latest or ghcr.io/..." onchange="autoSaveProjectService()">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-5">
+                            <h6 class="mb-4 fw-semibold"><i class="bi bi-rocket me-2"></i> Resources</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-medium mb-2">CPU (vCPU)</label>
+                                    <input type="number" class="form-control" id="service-cpu" value="8" min="1" max="32" onchange="autoSaveProjectService()">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-medium mb-2">Memory (GB)</label>
+                                    <input type="number" class="form-control" id="service-memory" value="8" min="1" max="32" onchange="autoSaveProjectService()">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Project Editor Styles */
+.template-editor-full {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-content-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.services-canvas-wrapper {
+    flex: 1;
+    position: relative;
+    background: #1a1a2e;
+    background-image: 
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+    overflow: auto;
+    min-height: 500px;
+}
+
+.add-button-container {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 100;
+}
+
+.services-canvas {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 500px;
+}
+
+/* Service Card */
+.service-card {
+    position: absolute;
+    width: 220px;
+    background: linear-gradient(145deg, #252540 0%, #1e1e35 100%);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 1rem;
+    cursor: move;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    user-select: none;
+}
+
+.service-card:hover {
+    border-color: rgba(139, 92, 246, 0.5);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.service-card .btn-remove {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.service-card:hover .btn-remove {
+    opacity: 1;
+}
+
+.service-card-content {
+    cursor: pointer;
+}
+
+.service-card-icon-wrapper {
+    width: 40px;
+    height: 40px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.75rem;
+}
+
+.service-card-icon {
+    font-size: 1.25rem;
+    color: #a78bfa;
+}
+
+.service-card-name {
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+}
+
+.service-card-subtitle {
+    color: #9ca3af;
+    font-size: 0.8rem;
+}
+
+/* Offcanvas styling */
+.offcanvas {
+    width: 60% !important;
+    min-width: 600px;
+    max-width: 900px;
+    position: fixed !important;
+    top: 70px !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: auto !important;
+    z-index: 99999 !important;
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+    pointer-events: auto !important;
+    background-color: #3d3d45;
+    color: var(--text-primary);
+    border: none !important;
+    border-left: 1px solid var(--border-default) !important;
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
+    touch-action: auto !important;
+}
+
+.offcanvas * {
+    pointer-events: auto !important;
+}
+
+.offcanvas.show {
+    transform: translateX(0) !important;
+    pointer-events: auto !important;
+    visibility: visible !important;
+    display: block !important;
+    z-index: 99999 !important;
+}
+
+.offcanvas.show *,
+.offcanvas.show .offcanvas-header,
+.offcanvas.show .offcanvas-body,
+.offcanvas.show .offcanvas-body *,
+.offcanvas.show button,
+.offcanvas.show input,
+.offcanvas.show select,
+.offcanvas.show textarea,
+.offcanvas.show a {
+    pointer-events: auto !important;
+    z-index: 99999 !important;
+    position: relative;
+}
+
+.offcanvas.hiding {
+    transform: translateX(100%);
+    pointer-events: none !important;
+}
+
+/* Remove backdrop completely */
+.offcanvas-backdrop {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+.offcanvas-header {
+    padding: 1rem 1.25rem;
+    pointer-events: auto !important;
+    background-color: #45454d;
+    border-bottom: 1px solid var(--border-default);
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
+}
+
+.service-offcanvas-icon {
+    font-size: 1.125rem;
+    color: var(--text-primary);
+}
+
+.offcanvas-close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1rem;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    z-index: 1;
+}
+
+.offcanvas-close-btn:hover {
+    color: var(--accent-primary);
+}
+
+.offcanvas-close-btn:focus {
+    outline: none;
+}
+
+.offcanvas-title-input {
+    background: transparent;
+    border: 1px solid transparent;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary) !important;
+    padding: 0.25rem 0.5rem;
+    width: 100%;
+    transition: all 0.2s;
+}
+
+.offcanvas-title-input::placeholder {
+    color: var(--text-secondary) !important;
+    opacity: 0.8;
+}
+
+.offcanvas-title-input:hover {
+    border-color: var(--border-default);
+}
+
+.offcanvas-title-input:focus,
+.offcanvas-title-input.editing {
+    outline: none;
+    border-color: var(--border-hover);
+    background: #3a3a42;
+    color: var(--text-primary) !important;
+}
+
+.offcanvas-body {
+    font-size: 0.875rem;
+    pointer-events: auto !important;
+    overflow-y: auto;
+    background-color: #3d3d45;
+    border: none !important;
+}
+
+.offcanvas-body > * {
+    pointer-events: auto !important;
+}
+
+.offcanvas-body h6 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.offcanvas-body .form-label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.offcanvas-body .form-control {
+    font-size: 0.875rem;
+    padding: 0.625rem 0.875rem;
+    background-color: #3a3a42;
+    border: 1px solid var(--border-default);
+    color: var(--text-primary) !important;
+}
+
+.offcanvas-body .form-control::placeholder {
+    color: var(--text-secondary) !important;
+    opacity: 0.8;
+}
+
+.offcanvas-body .form-control:focus {
+    background-color: #3a3a42;
+    border-color: var(--border-hover);
+    color: var(--text-primary) !important;
+}
+
+.service-tab-link {
+    font-size: 0.8125rem;
+    padding: 0.625rem 1rem;
+    color: var(--text-primary) !important;
+}
+
+.service-tab-link:hover {
+    color: var(--accent-primary) !important;
+}
+
+.service-tab-link.active {
+    color: var(--accent-primary) !important;
+    border-bottom-color: var(--border-hover) !important;
+}
+
+/* Offcanvas tabs styling */
+#service-offcanvas .nav-tabs {
+    border-bottom: 1px solid var(--border-default);
+}
+
+#service-offcanvas .nav-tabs .nav-link {
+    color: var(--text-primary) !important;
+    border-color: transparent transparent var(--border-default) !important;
+}
+
+#service-offcanvas .nav-tabs .nav-link:hover {
+    color: var(--accent-primary) !important;
+    border-color: transparent transparent var(--border-hover) !important;
+}
+
+#service-offcanvas .nav-tabs .nav-link.active {
+    color: var(--accent-primary) !important;
+    border-color: transparent transparent var(--border-hover) !important;
+    background-color: transparent !important;
+}
+
+/* Offcanvas cards */
+#service-offcanvas .card {
+    background-color: #45454d !important;
+    border: 1px solid var(--border-default) !important;
+}
+
+#service-offcanvas .card-body {
+    color: var(--text-primary) !important;
+}
+
+#service-offcanvas .text-muted {
+    color: var(--text-secondary) !important;
+    opacity: 0.9;
+}
+
+#service-offcanvas .btn-primary {
+    background-color: var(--accent-primary) !important;
+    border-color: var(--accent-primary) !important;
+    color: var(--bg-primary) !important;
+}
+
+#service-offcanvas .btn-primary:hover {
+    background-color: var(--accent-hover) !important;
+    border-color: var(--accent-hover) !important;
+    color: var(--bg-primary) !important;
+}
+
+#service-offcanvas .btn-outline-secondary {
+    border-color: var(--border-default) !important;
+    color: var(--text-primary) !important;
+}
+
+#service-offcanvas .btn-outline-secondary:hover {
+    border-color: var(--border-hover) !important;
+    color: var(--accent-primary) !important;
+    background-color: #484850 !important;
+}
+
+/* Offcanvas icons */
+#service-offcanvas i {
+    color: var(--text-primary) !important;
+}
+
+#service-offcanvas .fw-bold,
+#service-offcanvas .fw-semibold {
+    color: var(--text-primary) !important;
+}
+
+/* Add Variable Form - Clean Monochrome Style */
+.add-variable-form {
+    background: #45454d;
+    border: 1px solid var(--border-default);
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.variable-input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.variable-name-wrapper {
+    display: flex;
+    align-items: stretch;
+    background: #3a3a42;
+    border: 1px solid var(--border-default);
+    overflow: hidden;
+    transition: border-color 0.2s;
+}
+
+.variable-name-wrapper:focus-within {
+    border-color: var(--border-hover);
+}
+
+.variable-name-input {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    padding: 0.625rem 0.875rem;
+    font-size: 0.8125rem;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+    flex: 1;
+    min-width: 0;
+}
+
+.variable-name-input::placeholder {
+    color: var(--text-tertiary);
+}
+
+.variable-name-input:focus {
+    outline: none;
+}
+
+.add-reference-btn {
+    background: #45454d;
+    border: none;
+    border-left: 1px solid var(--border-default);
+    color: var(--text-primary);
+    padding: 0 0.875rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.add-reference-btn:hover {
+    color: var(--accent-primary);
+    background: #484850;
+}
+
+.variable-value-wrapper {
+    display: flex;
+    align-items: stretch;
+    background: #3a3a42;
+    border: 1px solid var(--border-default);
+    overflow: hidden;
+    transition: border-color 0.2s;
+}
+
+.variable-value-wrapper:focus-within {
+    border-color: var(--border-hover);
+}
+
+.variable-value-input {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    padding: 0.625rem 0.875rem;
+    font-size: 0.8125rem;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+    flex: 1;
+    min-width: 0;
+}
+
+.variable-value-input::placeholder {
+    color: var(--text-tertiary);
+}
+
+.variable-value-input:focus {
+    outline: none;
+}
+
+.variable-json-btn {
+    background: #45454d;
+    border: none;
+    border-left: 1px solid var(--border-default);
+    color: var(--text-primary);
+    padding: 0 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+}
+
+.variable-json-btn:hover {
+    color: var(--accent-primary);
+    background: #484850;
+}
+
+.variable-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-add-variable {
+    background: var(--accent-primary);
+    border: 1px solid var(--accent-primary);
+    color: var(--bg-primary);
+    padding: 0.625rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    width: 36px;
+    height: 36px;
+}
+
+.btn-add-variable:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+}
+
+.btn-cancel-variable {
+    background: #3a3a42;
+    border: 1px solid var(--border-default);
+    color: var(--text-primary);
+    padding: 0.625rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    width: 36px;
+    height: 36px;
+}
+
+.btn-cancel-variable:hover {
+    color: var(--accent-primary);
+    border-color: var(--border-hover);
+    background: #3d3d45;
+}
+
+/* Variables List */
+.no-variables-msg {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.variable-item {
+    display: flex;
+    align-items: center;
+    background: #45454d;
+    border: 1px solid var(--border-default);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.variable-item:hover {
+    border-color: var(--border-hover);
+    background: #484850;
+}
+
+.variable-item-key {
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-width: 150px;
+}
+
+.variable-item-value {
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+    color: var(--text-secondary);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.variable-item-actions {
+    display: flex;
+    gap: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.variable-item:hover .variable-item-actions {
+    opacity: 1;
+}
+
+.variable-item-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-tertiary);
+    padding: 0.25rem;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.variable-item-btn:hover {
+    color: var(--text-primary);
+}
+
+.variable-item-btn.delete:hover {
+    color: #ef4444;
+}
+
+/* Raw Editor */
+.raw-variables-textarea {
+    background: #3a3a42;
+    border: 1px solid var(--border-default);
+    color: var(--text-primary);
+    font-size: 0.9375rem;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+}
+
+.raw-variables-textarea:focus {
+    background: #3a3a42;
+    border-color: var(--border-hover);
+    color: var(--text-primary);
+    box-shadow: none;
+    outline: none;
+}
+</style>
+
+<script>
+// Project-specific variables
+let projectServiceCounter = 0;
+let projectServices = {};
+let currentProjectServiceId = null;
+let projectAutoSaveTimeout = null;
+
+// Get project ID
+let projectId = null;
+if (typeof window.projectIdFromContext !== 'undefined') {
+    projectId = window.projectIdFromContext;
+}
+
+console.log('Project ID:', projectId);
+
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Add new service card
+function addProjectServiceCard() {
+    projectServiceCounter++;
+    const serviceId = 'service_' + projectServiceCounter;
+    
+    // Default position
+    const canvas = document.getElementById('services-canvas');
+    const defaultX = 50 + (Object.keys(projectServices).length % 4) * 250;
+    const defaultY = 50 + Math.floor(Object.keys(projectServices).length / 4) * 180;
+    
+    // Create service object
+    projectServices[serviceId] = {
+        id: serviceId,
+        name: 'New Service',
+        image: '',
+        cpu: 8,
+        memory: 8,
+        variables: {},
+        networking: { http: false, tcp: false },
+        position: { x: defaultX, y: defaultY },
+        status: 'pending'
+    };
+    
+    // Render card
+    renderProjectServiceCard(serviceId);
+    
+    // Save to backend
+    saveProjectServiceToBackend(serviceId);
+}
+
+// Render service card
+function renderProjectServiceCard(serviceId) {
+    const canvas = document.getElementById('services-canvas');
+    const service = projectServices[serviceId];
+    
+    if (!canvas || !service) return;
+    
+    const cardHtml = `
+        <div class="service-card" 
+             data-service-id="${serviceId}"
+             style="left: ${service.position.x}px; top: ${service.position.y}px;">
+            <button 
+                type="button" 
+                class="btn btn-sm btn-link text-danger p-0 btn-remove"
+                onclick="removeProjectServiceCard('${serviceId}', event)"
+                title="Remove service">
+                <i class="bi bi-x-lg"></i>
+            </button>
+            <div class="service-card-content" onclick="handleProjectCardClick('${serviceId}', event)">
+                <div class="service-card-icon-wrapper">
+                    <i class="bi bi-box service-card-icon"></i>
+                </div>
+                <div class="service-card-name">${service.name}</div>
+                <div class="service-card-subtitle">${service.image || 'No image'}</div>
+            </div>
+        </div>
+    `;
+    
+    canvas.insertAdjacentHTML('beforeend', cardHtml);
+    
+    // Make draggable
+    const cardElement = canvas.querySelector(`[data-service-id="${serviceId}"]`);
+    if (cardElement) {
+        makeProjectCardDraggable(cardElement, serviceId);
+    }
+}
+
+// Handle card click - open offcanvas
+function handleProjectCardClick(serviceId, event) {
+    if (event) {
+        event.stopPropagation();
+    }
+    
+    currentProjectServiceId = serviceId;
+    const service = projectServices[serviceId];
+    
+    if (!service) return;
+    
+    // Update offcanvas content
+    document.getElementById('offcanvas-service-name-input').value = service.name;
+    document.getElementById('offcanvas-service-name').textContent = service.name;
+    document.getElementById('offcanvas-service-image').textContent = service.image || 'No image';
+    document.getElementById('service-source-image').value = service.image || '';
+    document.getElementById('service-cpu').value = service.cpu || 8;
+    document.getElementById('service-memory').value = service.memory || 8;
+    
+    // Render variables list
+    renderVariablesList();
+    
+    // Reset form states
+    document.getElementById('add-variable-form').style.display = 'none';
+    document.getElementById('raw-editor-container').style.display = 'none';
+    document.getElementById('variables-editor').style.display = 'block';
+    isRawEditorOpen = false;
+    
+    // Reset tabs to Overview (first tab) using Bootstrap Tab API
+    const overviewTab = document.getElementById('overview-tab');
+    if (overviewTab) {
+        // Remove active class from all tabs
+        document.querySelectorAll('#service-tabs .nav-link').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        // Remove show active from all tab panes
+        document.querySelectorAll('#service-tab-content .tab-pane').forEach(pane => {
+            pane.classList.remove('show', 'active');
+        });
+        
+        // Activate overview tab
+        overviewTab.classList.add('active');
+        const overviewPane = document.getElementById('overview-pane');
+        if (overviewPane) {
+            overviewPane.classList.add('show', 'active');
+        }
+    }
+    
+    // Show offcanvas
+    const offcanvasEl = document.getElementById('service-offcanvas');
+    
+    // Remove any existing backdrop
+    const existingBackdrop = document.querySelector('.offcanvas-backdrop');
+    if (existingBackdrop) {
+        existingBackdrop.remove();
+    }
+    
+    const offcanvas = new bootstrap.Offcanvas(offcanvasEl, {
+        backdrop: false,
+        keyboard: true
+    });
+    
+    offcanvas.show();
+    
+    // Force pointer events after showing
+    setTimeout(() => {
+        offcanvasEl.style.pointerEvents = 'auto';
+        offcanvasEl.style.zIndex = '9999';
+        const header = offcanvasEl.querySelector('.offcanvas-header');
+        const body = offcanvasEl.querySelector('.offcanvas-body');
+        if (header) {
+            header.style.pointerEvents = 'auto';
+            header.style.zIndex = '9999';
+        }
+        if (body) {
+            body.style.pointerEvents = 'auto';
+            body.style.zIndex = '9999';
+            // Make all children clickable
+            const allChildren = body.querySelectorAll('*');
+            allChildren.forEach(child => {
+                child.style.pointerEvents = 'auto';
+            });
+        }
+    }, 100);
+}
+
+// Update service name
+function updateProjectServiceName(name) {
+    if (!currentProjectServiceId || !projectServices[currentProjectServiceId]) return;
+    
+    projectServices[currentProjectServiceId].name = name;
+    
+    // Update card
+    const card = document.querySelector(`[data-service-id="${currentProjectServiceId}"]`);
+    if (card) {
+        card.querySelector('.service-card-name').textContent = name;
+    }
+    
+    // Update offcanvas
+    document.getElementById('offcanvas-service-name').textContent = name;
+    
+    // Auto-save
+    autoSaveProjectService();
+}
+
+// Auto-save service
+function autoSaveProjectService() {
+    if (!currentProjectServiceId || !projectServices[currentProjectServiceId]) return;
+    
+    const service = projectServices[currentProjectServiceId];
+    
+    // Get values from form
+    service.image = document.getElementById('service-source-image').value;
+    service.cpu = parseInt(document.getElementById('service-cpu').value) || 8;
+    service.memory = parseInt(document.getElementById('service-memory').value) || 8;
+    
+    // Update card subtitle
+    const card = document.querySelector(`[data-service-id="${currentProjectServiceId}"]`);
+    if (card) {
+        card.querySelector('.service-card-subtitle').textContent = service.image || 'No image';
+    }
+    
+    // Debounce save
+    clearTimeout(projectAutoSaveTimeout);
+    projectAutoSaveTimeout = setTimeout(() => {
+        saveProjectServiceToBackend(currentProjectServiceId);
+    }, 1000);
+}
+
+// Save service to backend
+async function saveProjectServiceToBackend(serviceId) {
+    if (!projectId) {
+        console.warn('No project ID');
+        return;
+    }
+    
+    const service = projectServices[serviceId];
+    if (!service) return;
+    
+    try {
+        const csrfToken = getCookie('csrftoken');
+        const response = await fetch('/project/service/create/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                project_id: projectId,
+                service_id: serviceId,
+                name: service.name,
+                image: service.image,
+                cpu: service.cpu,
+                memory: service.memory,
+                variables: service.variables,
+                networking: service.networking,
+                position: service.position
+            })
+        });
+        
+        const data = await response.json();
+        console.log('Service saved:', data);
+    } catch (error) {
+        console.error('Error saving service:', error);
+    }
+}
+
+// Remove service card
+function removeProjectServiceCard(serviceId, event) {
+    if (event) {
+        event.stopPropagation();
+    }
+    
+    // Remove from DOM
+    const card = document.querySelector(`[data-service-id="${serviceId}"]`);
+    if (card) {
+        card.remove();
+    }
+    
+    // Remove from object
+    delete projectServices[serviceId];
+    
+    // TODO: Delete from backend
+}
+
+// Make card draggable
+function makeProjectCardDraggable(cardElement, serviceId) {
+    let isDragging = false;
+    let startX, startY, initialX, initialY;
+    
+    cardElement.addEventListener('mousedown', function(e) {
+        if (e.target.closest('.btn-remove') || e.target.closest('.service-card-content')) {
+            return;
+        }
+        
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        initialX = cardElement.offsetLeft;
+        initialY = cardElement.offsetTop;
+        
+        cardElement.style.zIndex = '1000';
+    });
+    
+    document.addEventListener('mousemove', function(e) {
+        if (!isDragging) return;
+        
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        
+        cardElement.style.left = (initialX + dx) + 'px';
+        cardElement.style.top = (initialY + dy) + 'px';
+    });
+    
+    document.addEventListener('mouseup', function() {
+        if (isDragging) {
+            isDragging = false;
+            cardElement.style.zIndex = '';
+            
+            // Save position
+            if (projectServices[serviceId]) {
+                projectServices[serviceId].position = {
+                    x: cardElement.offsetLeft,
+                    y: cardElement.offsetTop
+                };
+                saveProjectServiceToBackend(serviceId);
+            }
+        }
+    });
+}
+
+// Load services from backend
+async function loadProjectServicesFromBackend() {
+    if (!projectId) return;
+    
+    try {
+        const response = await fetch(`/project/${projectId}/services/`);
+        const data = await response.json();
+        
+        if (data.success && data.services) {
+            data.services.forEach(serviceData => {
+                const counter = parseInt(serviceData.service_id.replace('service_', '')) || 0;
+                if (counter > projectServiceCounter) {
+                    projectServiceCounter = counter;
+                }
+                
+                projectServices[serviceData.service_id] = {
+                    id: serviceData.service_id,
+                    name: serviceData.name,
+                    image: serviceData.image,
+                    cpu: serviceData.cpu,
+                    memory: serviceData.memory,
+                    variables: serviceData.variables || {},
+                    networking: serviceData.networking || {},
+                    position: serviceData.position || { x: 50, y: 50 },
+                    status: serviceData.status || 'pending'
+                };
+                
+                renderProjectServiceCard(serviceData.service_id);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading services:', error);
+    }
+}
+
+// =============================================================================
+// VARIABLES MANAGEMENT
+// =============================================================================
+
+let isRawEditorOpen = false;
+
+function showAddVariableForm() {
+    const form = document.getElementById('add-variable-form');
+    const rawEditor = document.getElementById('raw-editor-container');
+    
+    // Hide raw editor if open
+    rawEditor.style.display = 'none';
+    isRawEditorOpen = false;
+    
+    // Show form
+    form.style.display = 'block';
+    
+    // Clear inputs
+    document.getElementById('new-variable-name').value = '';
+    document.getElementById('new-variable-value').value = '';
+    
+    // Focus on name input
+    document.getElementById('new-variable-name').focus();
+}
+
+function cancelAddVariable() {
+    document.getElementById('add-variable-form').style.display = 'none';
+}
+
+function saveNewVariable() {
+    const nameInput = document.getElementById('new-variable-name');
+    const valueInput = document.getElementById('new-variable-value');
+    
+    const name = nameInput.value.trim().toUpperCase().replace(/[^A-Z0-9_]/g, '_');
+    const value = valueInput.value;
+    
+    if (!name) {
+        nameInput.focus();
+        return;
+    }
+    
+    // Add to service variables
+    if (currentProjectServiceId && projectServices[currentProjectServiceId]) {
+        if (!projectServices[currentProjectServiceId].variables) {
+            projectServices[currentProjectServiceId].variables = {};
+        }
+        projectServices[currentProjectServiceId].variables[name] = value;
+        
+        // Update UI
+        renderVariablesList();
+        
+        // Auto-save
+        saveProjectServiceToBackend(currentProjectServiceId);
+    }
+    
+    // Hide form
+    cancelAddVariable();
+}
+
+function renderVariablesList() {
+    const container = document.getElementById('variables-list-container');
+    const overviewContainer = document.getElementById('offcanvas-variables-list');
+    
+    if (!currentProjectServiceId || !projectServices[currentProjectServiceId]) {
+        container.innerHTML = '<p class="text-muted no-variables-msg">No Service Variables</p>';
+        if (overviewContainer) {
+            overviewContainer.innerHTML = '<p class="text-muted mb-0">No variables added to this service.</p>';
+        }
+        return;
+    }
+    
+    const variables = projectServices[currentProjectServiceId].variables || {};
+    const keys = Object.keys(variables);
+    
+    if (keys.length === 0) {
+        container.innerHTML = '<p class="text-muted no-variables-msg">No Service Variables</p>';
+        if (overviewContainer) {
+            overviewContainer.innerHTML = '<p class="text-muted mb-0">No variables added to this service.</p>';
+        }
+        return;
+    }
+    
+    let html = '';
+    keys.forEach(key => {
+        const value = variables[key];
+        const displayValue = value.length > 30 ? value.substring(0, 30) + '...' : value;
+        const isSecret = key.toLowerCase().includes('secret') || key.toLowerCase().includes('password') || key.toLowerCase().includes('key');
+        
+        html += `
+            <div class="variable-item" data-key="${key}">
+                <span class="variable-item-key">${key}</span>
+                <span class="variable-item-value">${isSecret ? '••••••••' : displayValue}</span>
+                <div class="variable-item-actions">
+                    <button type="button" class="variable-item-btn" onclick="editVariable('${key}')" title="Edit">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button type="button" class="variable-item-btn delete" onclick="deleteVariable('${key}')" title="Delete">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+    
+    // Update overview tab
+    if (overviewContainer) {
+        overviewContainer.innerHTML = `<p class="text-muted mb-0">${keys.length} variable${keys.length !== 1 ? 's' : ''} configured</p>`;
+    }
+}
+
+function deleteVariable(key) {
+    if (!currentProjectServiceId || !projectServices[currentProjectServiceId]) return;
+    
+    if (confirm(`Delete variable "${key}"?`)) {
+        delete projectServices[currentProjectServiceId].variables[key];
+        renderVariablesList();
+        saveProjectServiceToBackend(currentProjectServiceId);
+    }
+}
+
+function editVariable(key) {
+    if (!currentProjectServiceId || !projectServices[currentProjectServiceId]) return;
+    
+    const value = projectServices[currentProjectServiceId].variables[key];
+    
+    // Show form with existing values
+    showAddVariableForm();
+    document.getElementById('new-variable-name').value = key;
+    document.getElementById('new-variable-value').value = value;
+    
+    // Delete old key when saving (will be re-added with possibly new name)
+    delete projectServices[currentProjectServiceId].variables[key];
+    renderVariablesList();
+}
+
+function toggleRawEditor() {
+    const rawEditor = document.getElementById('raw-editor-container');
+    const variablesEditor = document.getElementById('variables-editor');
+    const addForm = document.getElementById('add-variable-form');
+    
+    isRawEditorOpen = !isRawEditorOpen;
+    
+    if (isRawEditorOpen) {
+        // Show raw editor
+        addForm.style.display = 'none';
+        variablesEditor.style.display = 'none';
+        rawEditor.style.display = 'block';
+        
+        // Populate with current variables
+        if (currentProjectServiceId && projectServices[currentProjectServiceId]) {
+            const variables = projectServices[currentProjectServiceId].variables || {};
+            document.getElementById('raw-variables-editor').value = JSON.stringify(variables, null, 2);
+        }
+    } else {
+        // Hide raw editor
+        rawEditor.style.display = 'none';
+        variablesEditor.style.display = 'block';
+    }
+}
+
+function saveRawVariables() {
+    const rawEditor = document.getElementById('raw-variables-editor');
+    
+    try {
+        const variables = JSON.parse(rawEditor.value || '{}');
+        
+        if (currentProjectServiceId && projectServices[currentProjectServiceId]) {
+            projectServices[currentProjectServiceId].variables = variables;
+            renderVariablesList();
+            saveProjectServiceToBackend(currentProjectServiceId);
+        }
+        
+        toggleRawEditor();
+    } catch (e) {
+        alert('Invalid JSON format. Please check your input.');
+    }
+}
+
+function showReferenceDropdown() {
+    // TODO: Show dropdown with available references
+    alert('Reference variables feature coming soon!');
+}
+
+function toggleJsonMode() {
+    // TODO: Toggle JSON input mode
+    alert('JSON mode coming soon!');
+}
+
+function addVariable() {
+    // Switch to variables tab and show form
+    const variablesTab = document.getElementById('variables-tab');
+    if (variablesTab) {
+        variablesTab.click();
+        setTimeout(() => {
+            showAddVariableForm();
+        }, 100);
+    }
+}
+
+// Close offcanvas
+function closeOffcanvas(event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    
+    const offcanvasEl = document.getElementById('service-offcanvas');
+    if (!offcanvasEl) return;
+    
+    // Try to get Bootstrap instance
+    let offcanvasInstance = bootstrap.Offcanvas.getInstance(offcanvasEl);
+    
+    // If no instance exists, create one
+    if (!offcanvasInstance) {
+        offcanvasInstance = new bootstrap.Offcanvas(offcanvasEl);
+    }
+    
+    // Use Bootstrap's hide method which properly handles all styles
+    offcanvasInstance.hide();
+    
+    // Manually clean up backdrop and body classes after a brief delay
+    setTimeout(() => {
+        // Remove backdrop
+        const backdrop = document.querySelector('.offcanvas-backdrop');
+        if (backdrop) {
+            backdrop.remove();
+        }
+        
+        // Remove body classes and styles
+        document.body.classList.remove('modal-open', 'offcanvas-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+    }, 100);
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    if (projectId) {
+        loadProjectServicesFromBackend();
+    }
+    
+    // Enable full viewport layout for project view
+    document.body.classList.add('full-viewport-layout');
+});
+
+// Clean up when navigating away from project view
+document.body.addEventListener('htmx:beforeSwap', function(evt) {
+    if (evt.detail.target.id === 'main-content') {
+        // Check if we're navigating away from project view
+        const currentPath = window.location.pathname;
+        if (currentPath.includes('/project/') && !evt.detail.xhr.responseURL.includes('/project/')) {
+            document.body.classList.remove('full-viewport-layout');
+        }
+    }
+});
+</script>

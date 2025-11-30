@@ -8,7 +8,7 @@
 
 <div id="template-editor-full" class="template-editor-full">
     <!-- Architecture Tab Content (Grid Only) -->
-    <div id="architecture-tab" class="tab-content">
+    <div id="architecture-tab" class="main-content-area">
         <!-- Services Canvas Container -->
         <div class="services-canvas-wrapper">
             <!-- Add Button (Top Right) -->
@@ -28,10 +28,10 @@
         </div>
         
         <!-- Off-Canvas Panel for Service Details -->
-        <div class="offcanvas offcanvas-end" tabindex="-1" id="service-offcanvas" aria-labelledby="service-offcanvas-label" data-bs-backdrop="true" data-bs-scroll="true">
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="service-offcanvas" aria-labelledby="service-offcanvas-label" data-bs-backdrop="false" data-bs-scroll="true">
             <div class="offcanvas-header border-bottom">
                 <div class="d-flex align-items-center flex-grow-1">
-                    <i class="bi bi-box service-offcanvas-icon me-3" id="offcanvas-service-icon" style="font-size: 1.5rem;"></i>
+                    <i class="bi bi-box service-offcanvas-icon me-2" id="offcanvas-service-icon"></i>
                     <div class="flex-grow-1">
                             <input 
                                 type="text" 
@@ -45,42 +45,44 @@
                                 onblur="this.classList.remove('editing'); updateServiceName(this.value);">
                     </div>
                 </div>
-                <button type="button" class="btn-close ms-3" data-bs-dismiss="offcanvas" aria-label="Close" onclick="if(typeof hideOffcanvasFallback === 'function') { hideOffcanvasFallback(); } else if(typeof bootstrap !== 'undefined' && bootstrap.Offcanvas) { const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('service-offcanvas')); if(offcanvas) offcanvas.hide(); }"></button>
+                <button type="button" class="offcanvas-close-btn" data-bs-dismiss="offcanvas" aria-label="Close" onclick="closeOffcanvas(event)">
+                    <i class="bi bi-x-lg"></i>
+                </button>
             </div>
             <div class="offcanvas-body p-0">
                 <!-- Service Tabs -->
-                <ul class="nav nav-tabs border-bottom px-4 pt-3" id="service-tabs" role="tablist">
+                <ul class="nav nav-tabs border-bottom px-3 pt-2" id="service-tabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview-pane" type="button" role="tab">
+                        <button class="nav-link active service-tab-link" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview-pane" type="button" role="tab">
                             Overview
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="variables-tab" data-bs-toggle="tab" data-bs-target="#variables-pane" type="button" role="tab">
+                        <button class="nav-link service-tab-link" id="variables-tab" data-bs-toggle="tab" data-bs-target="#variables-pane" type="button" role="tab">
                             Variables
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="settings-tab-btn" data-bs-toggle="tab" data-bs-target="#settings-pane" type="button" role="tab">
+                        <button class="nav-link service-tab-link" id="settings-tab-btn" data-bs-toggle="tab" data-bs-target="#settings-pane" type="button" role="tab">
                             Settings
                         </button>
                     </li>
                 </ul>
                 
                 <!-- Tab Content -->
-                <div class="tab-content" id="service-tab-content">
+                <div class="tab-content px-3 py-3" id="service-tab-content">
                     <!-- Overview Tab -->
                     <div class="tab-pane fade show active px-4 py-4" id="overview-pane" role="tabpanel">
                         <div class="mb-5">
                             <h6 class="mb-4 fw-semibold"><i class="bi bi-code-square me-2"></i> Source</h6>
-                            <div class="card" style="background-color: var(--gray-50, #fafafa); border: 1px solid var(--gray-200, #e5e5e5);">
+                            <div class="card" style="background-color: #45454d !important; border: 1px solid var(--border-default) !important;">
                                 <div class="card-body p-4">
                                     <div class="d-flex align-items-center justify-content-between">
                                         <div class="d-flex align-items-center">
-                                            <i class="bi bi-box me-3" style="font-size: 1.75rem; color: var(--gray-600);"></i>
+                                            <i class="bi bi-box me-3" style="font-size: 1.75rem; color: var(--text-primary) !important;"></i>
                                             <div>
-                                                <div class="fw-bold mb-1" id="offcanvas-service-name" style="font-size: 1rem;">Service Name</div>
-                                                <small class="text-muted" id="offcanvas-service-image">No image</small>
+                                                <div class="fw-bold mb-1" id="offcanvas-service-name" style="font-size: 1rem; color: var(--text-primary) !important;">Service Name</div>
+                                                <small class="text-muted" id="offcanvas-service-image" style="color: var(--text-secondary) !important;">No image</small>
                                             </div>
                                         </div>
                                         <button type="button" class="btn btn-sm btn-outline-secondary" onclick="editServiceSource()">
@@ -96,7 +98,7 @@
                             <div id="offcanvas-variables-list" class="mb-3">
                                 <p class="text-muted mb-0">No variables added to this service.</p>
                             </div>
-                            <button type="button" class="btn btn-primary btn-sm" onclick="addVariable()">
+                            <button type="button" class="btn btn-primary btn-sm" onclick="addVariable()" style="background: var(--black); border-color: var(--black); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500;">
                                 <i class="bi bi-plus-circle me-1"></i> Add variables
                             </button>
                         </div>
@@ -114,23 +116,71 @@
                     <div class="tab-pane fade px-4 py-4" id="variables-pane" role="tabpanel">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h6 class="mb-0 fw-semibold">Service Variables</h6>
-                            <div>
-                                <button type="button" class="btn btn-sm btn-outline-secondary me-2" onclick="toggleRawEditor()">
-                                    <i class="bi bi-code me-1"></i> Raw Editor
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleRawEditor()" style="border-color: var(--gray-300); color: var(--gray-700); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500;">
+                                    <i class="bi bi-code me-1"></i> RAW EDITOR
                                 </button>
-                                <button type="button" class="btn btn-sm btn-primary" onclick="addVariable()">
-                                    <i class="bi bi-plus-circle me-1"></i> New Variable
+                                <button type="button" class="btn btn-sm btn-primary" onclick="showAddVariableForm()" style="background: var(--accent-primary); border-color: var(--accent-primary); color: var(--bg-primary); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500;">
+                                    <i class="bi bi-plus-circle me-1"></i> NEW VARIABLE
                                 </button>
                             </div>
                         </div>
+                        
+                        <!-- Add Variable Form (Hidden by default) -->
+                        <div id="add-variable-form" class="add-variable-form" style="display: none;">
+                            <div class="variable-input-row">
+                                <div class="variable-name-wrapper">
+                                    <input type="text" 
+                                           class="variable-name-input" 
+                                           id="new-variable-name" 
+                                           placeholder="VARIABLE_NAME"
+                                           onkeypress="if(event.key === 'Enter') saveNewVariable()">
+                                    <button type="button" class="add-reference-btn" onclick="showReferenceDropdown()">
+                                        <i class="bi bi-chevron-down me-1"></i> Add Reference
+                                    </button>
+                                </div>
+                                <div class="variable-value-wrapper">
+                                    <input type="text" 
+                                           class="variable-value-input" 
+                                           id="new-variable-value" 
+                                           placeholder="VALUE or ${{REF}}"
+                                           onkeypress="if(event.key === 'Enter') saveNewVariable()">
+                                    <button type="button" class="variable-json-btn" onclick="toggleJsonMode()">
+                                        <i class="bi bi-braces"></i>
+                                    </button>
+                                </div>
+                                <div class="variable-actions">
+                                    <button type="button" class="btn-add-variable" onclick="saveNewVariable()" title="Add variable">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                    <button type="button" class="btn-cancel-variable" onclick="cancelAddVariable()" title="Cancel">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Raw Editor (Hidden by default) -->
+                        <div id="raw-editor-container" style="display: none;">
+                            <textarea class="form-control font-monospace raw-variables-textarea" 
+                                      rows="12" 
+                                      id="raw-variables-editor" 
+                                      placeholder='{"KEY": "value", "ANOTHER_KEY": "another_value"}'></textarea>
+                            <div class="d-flex gap-2 mt-3">
+                                <button type="button" class="btn btn-sm btn-dark" onclick="saveRawVariables()" style="background: var(--black); border-color: var(--black); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500;">
+                                    <i class="bi bi-check-lg me-1"></i> Save
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleRawEditor()" style="border-color: var(--gray-300); color: var(--gray-700); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500;">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Variables List -->
                         <div id="variables-editor">
                             <div id="variables-list-container">
-                                <!-- Variables will be added here -->
+                                <p class="text-muted no-variables-msg">No Service Variables</p>
                             </div>
-                        </div>
-                        <div id="raw-editor-container" style="display: none;">
-                            <textarea class="form-control font-monospace" rows="10" id="raw-variables-editor" placeholder='{"KEY": "value"}'></textarea>
-                            <button type="button" class="btn btn-primary btn-sm mt-2" onclick="saveRawVariables()">Save</button>
                         </div>
                     </div>
                     
@@ -167,16 +217,11 @@
                                             <h6 class="fw-semibold mb-3">Registry Credentials</h6>
                                             <p class="text-muted small mb-3">Private Docker Registry credentials used to deploy your Docker image.</p>
                                             
-                                            <!-- Credentials Form (Initially Hidden) -->
-                                            <div id="credentials-form" class="credentials-form" style="display: none;">
+                                            <!-- Credentials Form -->
+                                            <div id="credentials-form" class="credentials-form">
                                                 <div class="mb-3">
                                                     <label class="form-label fw-medium mb-2">Username</label>
-                                                    <div class="input-group">
-                                                        <input type="text" class="form-control" id="registry-username" placeholder="Enter registry username">
-                                                        <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('registry-username')">
-                                                            <i class="bi bi-eye-slash"></i>
-                                                        </button>
-                                                    </div>
+                                                    <input type="text" class="form-control" id="registry-username" placeholder="Enter registry username">
                                                 </div>
                                                 
                                                 <div class="mb-3">
@@ -187,34 +232,17 @@
                                                             <i class="bi bi-eye"></i>
                                                         </button>
                                                     </div>
+                                                    <small class="form-text text-muted">Leave blank to keep existing password</small>
                                                 </div>
                                                 
-                                                <div class="d-flex gap-2">
-                                                    <button type="button" class="btn btn-primary btn-sm" onclick="saveCredentials()">
-                                                        Set credentials
+                                                <div class="d-flex gap-2 align-items-center">
+                                                    <button type="button" class="btn btn-primary btn-sm" id="save-credentials-btn" onclick="saveCredentials()">
+                                                        <i class="bi bi-save me-1"></i> Set credentials
                                                     </button>
-                                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleCredentialsForm()">
-                                                        Cancel
-                                                    </button>
+                                                    <span id="credentials-status" class="text-muted small" style="display: none;">
+                                                        <i class="bi bi-check-circle-fill text-success me-1"></i> Credentials saved
+                                                    </span>
                                                 </div>
-                                            </div>
-                                            
-                                            <!-- Add Credentials Button -->
-                                            <div id="add-credentials-btn-wrapper">
-                                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="toggleCredentialsForm()">
-                                                    <i class="bi bi-plus me-1"></i> Add credentials
-                                                </button>
-                                            </div>
-                                            
-                                            <!-- Credentials Info Box (shown when credentials exist) -->
-                                            <div id="credentials-info" class="alert alert-info d-flex align-items-center justify-content-between" style="display: none !important;">
-                                                <div>
-                                                    <i class="bi bi-info-circle me-2"></i>
-                                                    <span>Registry credentials configured</span>
-                                                </div>
-                                                <button type="button" class="btn btn-sm btn-link text-primary" onclick="toggleCredentialsForm()">
-                                                    Edit
-                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -514,6 +542,42 @@ function handleCardClick(serviceId, event) {
 // Make it globally available immediately
 window.handleCardClick = handleCardClick;
 
+// Close offcanvas
+function closeOffcanvas(event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    
+    const offcanvasEl = document.getElementById('service-offcanvas');
+    if (!offcanvasEl) return;
+    
+    // Try to get Bootstrap instance
+    let offcanvasInstance = bootstrap.Offcanvas.getInstance(offcanvasEl);
+    
+    // If no instance exists, create one
+    if (!offcanvasInstance) {
+        offcanvasInstance = new bootstrap.Offcanvas(offcanvasEl);
+    }
+    
+    // Use Bootstrap's hide method which properly handles all styles
+    offcanvasInstance.hide();
+    
+    // Manually clean up backdrop and body classes after a brief delay
+    setTimeout(() => {
+        // Remove backdrop
+        const backdrop = document.querySelector('.offcanvas-backdrop');
+        if (backdrop) {
+            backdrop.remove();
+        }
+        
+        // Remove body classes and styles
+        document.body.classList.remove('modal-open', 'offcanvas-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+    }, 100);
+}
+
 function showTab(tabName) {
     // Hide all tabs
     document.getElementById('architecture-tab').style.display = 'none';
@@ -796,32 +860,74 @@ function openServiceDetails(serviceId) {
     }
     
     // Update credential fields and visibility
-    const credentialsForm = document.getElementById('credentials-form');
-    const credentialsInfo = document.getElementById('credentials-info');
-    const addCredentialsBtn = document.getElementById('add-credentials-btn-wrapper');
+    const credentialsStatus = document.getElementById('credentials-status');
+    const saveCredentialsBtn = document.getElementById('save-credentials-btn');
     const usernameField = document.getElementById('registry-username');
+    const passwordField = document.getElementById('registry-password');
     
     if (service.has_credentials) {
-        // Has credentials - show info box, hide form and add button
-        if (credentialsForm) credentialsForm.style.display = 'none';
-        if (addCredentialsBtn) addCredentialsBtn.style.display = 'none';
-        if (credentialsInfo) {
-            credentialsInfo.style.display = 'flex';
-            credentialsInfo.classList.remove('d-none');
-        }
-        // Populate username for editing
+        // Has credentials - populate username and show status
         if (usernameField && service.registry_username) {
             usernameField.value = service.registry_username;
         }
+        if (passwordField) {
+            passwordField.value = ''; // Keep password empty for security
+            passwordField.placeholder = 'Enter new password (leave blank to keep current)';
+        }
+        if (saveCredentialsBtn) {
+            saveCredentialsBtn.innerHTML = '<i class="bi bi-save me-1"></i> Update credentials';
+        }
+        if (credentialsStatus) {
+            credentialsStatus.style.display = 'inline';
+        }
     } else {
-        // No credentials - show add button, hide form and info
-        if (credentialsForm) credentialsForm.style.display = 'none';
-        if (credentialsInfo) credentialsInfo.style.display = 'none';
-        if (addCredentialsBtn) addCredentialsBtn.style.display = 'block';
+        // No credentials - clear fields and reset
+        if (usernameField) {
+            usernameField.value = '';
+        }
+        if (passwordField) {
+            passwordField.value = '';
+            passwordField.placeholder = 'Enter registry password';
+        }
+        if (saveCredentialsBtn) {
+            saveCredentialsBtn.innerHTML = '<i class="bi bi-save me-1"></i> Set credentials';
+        }
+        if (credentialsStatus) {
+            credentialsStatus.style.display = 'none';
+        }
     }
     
     // Update variables list
     updateVariablesList();
+    
+    // Reset variable form states
+    const addForm = document.getElementById('add-variable-form');
+    const rawEditor = document.getElementById('raw-editor-container');
+    const variablesEditor = document.getElementById('variables-editor');
+    if (addForm) addForm.style.display = 'none';
+    if (rawEditor) rawEditor.style.display = 'none';
+    if (variablesEditor) variablesEditor.style.display = 'block';
+    isRawEditorOpen = false;
+    
+    // Reset tabs to Overview (first tab) using Bootstrap Tab API
+    const overviewTab = document.getElementById('overview-tab');
+    if (overviewTab) {
+        // Remove active class from all tabs
+        document.querySelectorAll('#service-tabs .nav-link').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        // Remove show active from all tab panes
+        document.querySelectorAll('#service-tab-content .tab-pane').forEach(pane => {
+            pane.classList.remove('show', 'active');
+        });
+        
+        // Activate overview tab
+        overviewTab.classList.add('active');
+        const overviewPane = document.getElementById('overview-pane');
+        if (overviewPane) {
+            overviewPane.classList.add('show', 'active');
+        }
+    }
     
     // Highlight selected card
     document.querySelectorAll('.service-card').forEach(card => {
@@ -851,12 +957,19 @@ function openServiceDetails(serviceId) {
             try {
                 console.log('Using Bootstrap Offcanvas API');
                 
+                // Remove any existing backdrop
+                const existingBackdrop = document.querySelector('.offcanvas-backdrop');
+                if (existingBackdrop) {
+                    existingBackdrop.remove();
+                }
+                
                 // Get or create offcanvas instance
                 let offcanvas = bootstrap.Offcanvas.getInstance(offcanvasEl);
                 if (!offcanvas) {
                     console.log('Creating new Offcanvas instance');
                     offcanvas = new bootstrap.Offcanvas(offcanvasEl, {
-                        backdrop: true,
+                        backdrop: false,
+                        keyboard: true,
                         scroll: true
                     });
                 }
@@ -864,6 +977,27 @@ function openServiceDetails(serviceId) {
                 // Show it
                 console.log('Calling offcanvas.show()');
                 offcanvas.show();
+                
+                // Force pointer events after showing
+                setTimeout(() => {
+                    offcanvasEl.style.pointerEvents = 'auto';
+                    offcanvasEl.style.zIndex = '99999';
+                    const header = offcanvasEl.querySelector('.offcanvas-header');
+                    const body = offcanvasEl.querySelector('.offcanvas-body');
+                    if (header) {
+                        header.style.pointerEvents = 'auto';
+                        header.style.zIndex = '99999';
+                    }
+                    if (body) {
+                        body.style.pointerEvents = 'auto';
+                        body.style.zIndex = '99999';
+                        // Make all children clickable
+                        const allChildren = body.querySelectorAll('*');
+                        allChildren.forEach(child => {
+                            child.style.pointerEvents = 'auto';
+                        });
+                    }
+                }, 100);
                 
                 // Verify it's showing
                 setTimeout(() => {
@@ -1091,21 +1225,152 @@ function updateServiceCardDisplay(serviceId) {
     }
 }
 
-function addVariable() {
+// =============================================================================
+// VARIABLES MANAGEMENT - Railway Style
+// =============================================================================
+
+let isRawEditorOpen = false;
+
+function showAddVariableForm() {
+    const form = document.getElementById('add-variable-form');
+    const rawEditor = document.getElementById('raw-editor-container');
+    const variablesEditor = document.getElementById('variables-editor');
+    
+    // Hide raw editor if open
+    rawEditor.style.display = 'none';
+    variablesEditor.style.display = 'block';
+    isRawEditorOpen = false;
+    
+    // Show form
+    form.style.display = 'block';
+    
+    // Clear inputs
+    document.getElementById('new-variable-name').value = '';
+    document.getElementById('new-variable-value').value = '';
+    
+    // Focus on name input
+    document.getElementById('new-variable-name').focus();
+}
+
+function cancelAddVariable() {
+    document.getElementById('add-variable-form').style.display = 'none';
+}
+
+function saveNewVariable() {
+    const nameInput = document.getElementById('new-variable-name');
+    const valueInput = document.getElementById('new-variable-value');
+    
+    const name = nameInput.value.trim().toUpperCase().replace(/[^A-Z0-9_]/g, '_');
+    const value = valueInput.value;
+    
+    if (!name) {
+        nameInput.focus();
+        return;
+    }
+    
     if (!currentServiceId) return;
     
-    const key = prompt('Enter variable key:');
-    if (!key) return;
-    
-    const value = prompt('Enter variable value:');
-    
+    // Add to service variables
     if (!services[currentServiceId].variables) {
         services[currentServiceId].variables = {};
     }
+    services[currentServiceId].variables[name] = value;
     
-    services[currentServiceId].variables[key] = value || '';
+    // Update UI
     updateVariablesList();
+    
+    // Auto-save
     autoSaveService();
+    
+    // Hide form
+    cancelAddVariable();
+}
+
+function addVariable() {
+    // Switch to variables tab and show form
+    const variablesTab = document.getElementById('variables-tab');
+    if (variablesTab) {
+        variablesTab.click();
+        setTimeout(() => {
+            showAddVariableForm();
+        }, 100);
+    }
+}
+
+function editVariable(key) {
+    if (!currentServiceId || !services[currentServiceId]) return;
+    
+    const value = services[currentServiceId].variables[key];
+    
+    // Show form with existing values
+    showAddVariableForm();
+    document.getElementById('new-variable-name').value = key;
+    document.getElementById('new-variable-value').value = value;
+    
+    // Delete old key when saving
+    delete services[currentServiceId].variables[key];
+    updateVariablesList();
+}
+
+function deleteVariable(key) {
+    if (!currentServiceId || !services[currentServiceId]) return;
+    
+    if (confirm(`Delete variable "${key}"?`)) {
+        delete services[currentServiceId].variables[key];
+        updateVariablesList();
+        autoSaveService();
+    }
+}
+
+function toggleRawEditor() {
+    const rawEditor = document.getElementById('raw-editor-container');
+    const variablesEditor = document.getElementById('variables-editor');
+    const addForm = document.getElementById('add-variable-form');
+    
+    isRawEditorOpen = !isRawEditorOpen;
+    
+    if (isRawEditorOpen) {
+        // Show raw editor
+        if (addForm) addForm.style.display = 'none';
+        variablesEditor.style.display = 'none';
+        rawEditor.style.display = 'block';
+        
+        // Populate with current variables
+        if (currentServiceId && services[currentServiceId]) {
+            const variables = services[currentServiceId].variables || {};
+            document.getElementById('raw-variables-editor').value = JSON.stringify(variables, null, 2);
+        }
+    } else {
+        // Hide raw editor
+        rawEditor.style.display = 'none';
+        variablesEditor.style.display = 'block';
+    }
+}
+
+function saveRawVariables() {
+    const rawEditor = document.getElementById('raw-variables-editor');
+    
+    try {
+        const variables = JSON.parse(rawEditor.value || '{}');
+        
+        if (currentServiceId && services[currentServiceId]) {
+            services[currentServiceId].variables = variables;
+            updateVariablesList();
+            autoSaveService();
+        }
+        
+        toggleRawEditor();
+    } catch (e) {
+        alert('Invalid JSON format. Please check your input.');
+    }
+}
+
+function showReferenceDropdown() {
+    alert('Reference variables feature coming soon!');
+}
+
+function toggleJsonMode() {
+    alert('JSON mode coming soon!');
 }
 
 function updateVariablesList() {
@@ -1114,29 +1379,37 @@ function updateVariablesList() {
     const variables = services[currentServiceId].variables || {};
     const container = document.getElementById('variables-list-container');
     const overviewList = document.getElementById('offcanvas-variables-list');
+    const keys = Object.keys(variables);
     
-    if (Object.keys(variables).length === 0) {
-        if (container) container.innerHTML = '<p class="text-muted">No Service Variables</p>';
+    if (keys.length === 0) {
+        if (container) container.innerHTML = '<p class="text-muted no-variables-msg">No Service Variables</p>';
         if (overviewList) overviewList.innerHTML = '<p class="text-muted">No variables added to this service.</p>';
         return;
     }
     
-    // Update variables list in Variables tab
+    // Update variables list in Variables tab with Railway-style cards
     if (container) {
-        let html = '<div class="table-responsive"><table class="table table-sm">';
-        html += '<thead><tr><th>Key</th><th>Value</th><th>Actions</th></tr></thead><tbody>';
-        
-        Object.keys(variables).forEach(key => {
+        let html = '';
+        keys.forEach(key => {
+            const value = variables[key];
+            const displayValue = value.length > 30 ? value.substring(0, 30) + '...' : value;
+            const isSecret = key.toLowerCase().includes('secret') || key.toLowerCase().includes('password') || key.toLowerCase().includes('key');
+            
             html += `
-                <tr>
-                    <td><code>${key}</code></td>
-                    <td><input type="text" class="form-control form-control-sm" value="${variables[key]}" onchange="updateVariable('${key}', this.value)" onkeypress="if(event.key === 'Enter') { this.blur(); updateVariable('${key}', this.value); }"></td>
-                    <td><button class="btn btn-sm btn-link text-danger" onclick="removeVariable('${key}')"><i class="bi bi-trash"></i></button></td>
-                </tr>
+                <div class="variable-item" data-key="${key}">
+                    <span class="variable-item-key">${key}</span>
+                    <span class="variable-item-value">${isSecret ? '••••••••' : displayValue}</span>
+                    <div class="variable-item-actions">
+                        <button type="button" class="variable-item-btn" onclick="editVariable('${key}')" title="Edit">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button type="button" class="variable-item-btn delete" onclick="deleteVariable('${key}')" title="Delete">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
             `;
         });
-        
-        html += '</tbody></table></div>';
         container.innerHTML = html;
     }
     
@@ -1279,7 +1552,7 @@ function togglePasswordVisibility(fieldId) {
 async function saveCredentials() {
     // Check if we have currentServiceId and templateId
     if (!currentServiceId) {
-        alert('No service selected. Please click on a service card first.');
+        showInlineError('credentials-status', 'No service selected. Please click on a service card first.');
         return;
     }
     
@@ -1292,17 +1565,43 @@ async function saveCredentials() {
     }
     
     if (!activeTemplateId) {
-        alert('No template ID found. Please refresh the page.');
+        showInlineError('credentials-status', 'No template ID found. Please refresh the page.');
         return;
     }
     
     const username = document.getElementById('registry-username').value.trim();
     const password = document.getElementById('registry-password').value.trim();
     
-    if (!username || !password) {
-        alert('Please enter both username and password');
+    // If updating credentials, username is required but password is optional
+    const isUpdating = services[currentServiceId]?.has_credentials;
+    
+    if (!username) {
+        showInlineError('credentials-status', 'Please enter a username');
         return;
     }
+    
+    if (!isUpdating && !password) {
+        showInlineError('credentials-status', 'Please enter a password');
+        return;
+    }
+    
+    // Prepare data
+    const updateData = {
+        template_id: activeTemplateId,
+        service_id: currentServiceId,
+        registry_username: username
+    };
+    
+    // Only include password if it's provided
+    if (password) {
+        updateData.registry_password = password;
+    }
+    
+    // Show saving state
+    const saveBtn = document.getElementById('save-credentials-btn');
+    const originalBtnText = saveBtn.innerHTML;
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
     
     try {
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || 
@@ -1314,12 +1613,7 @@ async function saveCredentials() {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': csrfToken
             },
-            body: JSON.stringify({
-                template_id: activeTemplateId,
-                service_id: currentServiceId,
-                registry_username: username,
-                registry_password: password
-            })
+            body: JSON.stringify(updateData)
         });
         
         const data = await response.json();
@@ -1332,26 +1626,54 @@ async function saveCredentials() {
                 services[currentServiceId].registry_username = username;
             }
             
-            // Hide form and show info
-            document.getElementById('credentials-form').style.display = 'none';
-            document.getElementById('add-credentials-btn-wrapper').style.display = 'none';
-            const info = document.getElementById('credentials-info');
-            if (info) {
-                info.style.display = 'flex';
-                info.classList.remove('d-none');
+            // Update UI
+            const statusMsg = document.getElementById('credentials-status');
+            const passwordField = document.getElementById('registry-password');
+            
+            if (saveBtn) {
+                saveBtn.innerHTML = '<i class="bi bi-save me-1"></i> Update credentials';
+                saveBtn.disabled = false;
             }
-            
-            // Clear password field for security
-            document.getElementById('registry-password').value = '';
-            
-            alert('Credentials saved successfully!');
+            if (statusMsg) {
+                statusMsg.innerHTML = '<i class="bi bi-check-circle-fill text-success me-1"></i> Credentials saved';
+                statusMsg.className = 'text-success small';
+                statusMsg.style.display = 'inline';
+                
+                // Hide success message after 3 seconds
+                setTimeout(() => {
+                    statusMsg.style.display = 'none';
+                }, 3000);
+            }
+            if (passwordField) {
+                passwordField.value = ''; // Clear password for security
+                passwordField.placeholder = 'Enter new password (leave blank to keep current)';
+            }
         } else {
             console.error('Error saving credentials:', data.error);
-            alert('Error saving credentials: ' + (data.error || 'Unknown error'));
+            showInlineError('credentials-status', 'Error: ' + (data.error || 'Unknown error'));
+            saveBtn.innerHTML = originalBtnText;
+            saveBtn.disabled = false;
         }
     } catch (error) {
         console.error('Error saving credentials:', error);
-        alert('Error saving credentials. Please try again.');
+        showInlineError('credentials-status', 'Error saving credentials. Please try again.');
+        saveBtn.innerHTML = originalBtnText;
+        saveBtn.disabled = false;
+    }
+}
+
+// Show inline error message
+function showInlineError(elementId, message) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.innerHTML = '<i class="bi bi-exclamation-circle-fill text-danger me-1"></i> ' + message;
+        element.className = 'text-danger small';
+        element.style.display = 'inline';
+        
+        // Hide error message after 5 seconds
+        setTimeout(() => {
+            element.style.display = 'none';
+        }, 5000);
     }
 }
 
@@ -1983,6 +2305,9 @@ function initializeTemplateEditor() {
     setNavbarHeight();
     hideSidebar();
     
+    // Enable full viewport layout for template editor
+    document.body.classList.add('full-viewport-layout');
+    
     // Load existing services if template ID is available
     if (templateId) {
         loadServicesFromBackend();
@@ -2010,10 +2335,17 @@ function initializeTemplateEditor() {
     window.removeServiceCard = removeServiceCard;
     window.addServiceCard = addServiceCard;
     window.addVariable = addVariable;
+    window.showAddVariableForm = showAddVariableForm;
+    window.cancelAddVariable = cancelAddVariable;
+    window.saveNewVariable = saveNewVariable;
+    window.editVariable = editVariable;
+    window.deleteVariable = deleteVariable;
     window.updateVariable = updateVariable;
     window.removeVariable = removeVariable;
     window.toggleRawEditor = toggleRawEditor;
     window.saveRawVariables = saveRawVariables;
+    window.showReferenceDropdown = showReferenceDropdown;
+    window.toggleJsonMode = toggleJsonMode;
     window.addHttpProxy = addHttpProxy;
     window.addTcpProxy = addTcpProxy;
     window.showSettingsTab = showSettingsTab;
@@ -2203,6 +2535,17 @@ function hideSidebar() {
 
 // Hide sidebar immediately when template editor loads
 hideSidebar();
+
+// Clean up when navigating away from template editor
+document.body.addEventListener('htmx:beforeSwap', function(evt) {
+    if (evt.detail.target.id === 'main-content') {
+        // Check if we're navigating away from template editor
+        const currentPath = window.location.pathname;
+        if (currentPath.includes('/settings') && !evt.detail.xhr.responseURL.includes('/settings')) {
+            document.body.classList.remove('full-viewport-layout');
+        }
+    }
+});
 </script>
 
 <style>
@@ -2231,10 +2574,10 @@ hideSidebar();
 
 .services-canvas {
     background-image: 
-        linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
-    background-size: 20px 20px;
-    background-color: #0f0f0f;
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-color: var(--bg-primary);
     border-radius: 0;
     padding: 2rem;
     padding-top: 4rem;
@@ -2242,7 +2585,8 @@ hideSidebar();
     position: relative;
     width: 100%;
     margin: 0;
-    overflow: hidden;
+    overflow: auto;
+    scroll-behavior: smooth;
 }
 
 #architecture-tab {
@@ -2257,8 +2601,8 @@ hideSidebar();
 }
 
 .service-card {
-    background: #1a1a1a;
-    border: 2px solid #2d2d2d;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-default);
     border-radius: 8px;
     padding: 1rem;
     transition: border-color 0.2s, box-shadow 0.2s;
@@ -2278,8 +2622,8 @@ hideSidebar();
 }
 
 .service-card:hover {
-    border-color: #6366f1;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    border-color: var(--accent-primary);
+    box-shadow: 0 4px 12px rgba(229, 229, 231, 0.1);
 }
 
 .service-card.dragging {
@@ -2292,8 +2636,8 @@ hideSidebar();
 }
 
 .service-card.selected {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px rgba(229, 229, 231, 0.2);
 }
 
 .service-card-content {
@@ -2317,7 +2661,7 @@ hideSidebar();
 
 .service-card-icon {
     font-size: 1.75rem;
-    color: #ffffff;
+    color: var(--text-primary);
     display: block;
     opacity: 0.9;
 }
@@ -2330,7 +2674,7 @@ hideSidebar();
 }
 
 .service-card-name {
-    color: #ffffff;
+    color: var(--text-primary);
     font-weight: 600;
     font-size: 0.875rem;
     margin-bottom: 0.25rem;
@@ -2342,7 +2686,7 @@ hideSidebar();
 }
 
 .service-card-subtitle {
-    color: #9ca3af;
+    color: var(--text-secondary);
     font-size: 0.75rem;
     line-height: 1.4;
     word-wrap: break-word;
@@ -2355,12 +2699,12 @@ hideSidebar();
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #9ca3af;
+    color: var(--text-secondary);
     font-size: 0.6875rem;
     margin-top: auto;
     gap: 0.25rem;
     padding-top: 0.5rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid var(--border-subtle);
     flex-shrink: 0;
 }
 
@@ -2409,7 +2753,7 @@ hideSidebar();
 
 .service-icon {
     font-size: 1.5rem;
-    color: #6c757d;
+    color: var(--text-secondary);
 }
 
 .service-card-body {
@@ -2419,42 +2763,176 @@ hideSidebar();
 .service-config-info {
     display: flex;
     align-items: center;
-    color: #6c757d;
+    color: var(--text-secondary);
     font-size: 0.875rem;
     margin-top: 0.5rem;
 }
 
 .offcanvas {
-    background-color: var(--white);
-    color: var(--black);
-    width: 50% !important;
-    max-width: none !important;
+    background-color: #3d3d45;
+    color: var(--text-primary);
+    width: 60% !important;
+    min-width: 600px;
+    max-width: 900px;
     height: calc(100vh - var(--navbar-height, 70px)) !important;
     position: fixed !important;
     top: var(--navbar-height, 70px) !important;
     right: 0 !important;
     bottom: auto !important;
     left: auto !important;
-    z-index: 1055 !important;
+    z-index: 99999 !important;
     transform: translateX(100%) !important;
     transition: transform 0.3s ease-in-out !important;
-    border-left: 1px solid var(--gray-200);
-    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+    border: none !important;
+    border-left: 1px solid var(--border-default) !important;
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
+    pointer-events: auto !important;
+    touch-action: auto !important;
+}
+
+.offcanvas * {
+    pointer-events: auto !important;
 }
 
 .offcanvas.show {
     transform: translateX(0) !important;
+    z-index: 99999 !important;
+    pointer-events: auto !important;
+    visibility: visible !important;
+    display: block !important;
+}
+
+.offcanvas.show *,
+.offcanvas.show .offcanvas-header,
+.offcanvas.show .offcanvas-body,
+.offcanvas.show .offcanvas-body *,
+.offcanvas.show button,
+.offcanvas.show input,
+.offcanvas.show select,
+.offcanvas.show textarea,
+.offcanvas.show a {
+    pointer-events: auto !important;
+    z-index: 99999 !important;
+    position: relative;
+}
+
+.offcanvas.hiding {
+    transform: translateX(100%) !important;
+}
+
+/* Remove backdrop completely */
+.offcanvas-backdrop {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
 }
 
 .offcanvas-header {
-    background-color: var(--white);
-    border-bottom: 1px solid var(--gray-200) !important;
-    padding: 1.5rem 1.5rem 1.25rem 1.5rem;
-    min-height: 70px;
+    background-color: #45454d;
+    border-bottom: 1px solid var(--border-default) !important;
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    padding: 1rem 1.25rem;
+    min-height: auto;
+}
+
+.service-offcanvas-icon {
+    font-size: 1.125rem;
+    color: var(--text-primary);
+}
+
+.offcanvas-close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1rem;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    z-index: 1;
+}
+
+.offcanvas-close-btn:hover {
+    color: var(--accent-primary);
+}
+
+.offcanvas-close-btn:focus {
+    outline: none;
 }
 
 .offcanvas-title-input {
-    background-color: var(--white);
+    background-color: transparent;
+    border: 1px solid transparent;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary) !important;
+    padding: 0.25rem 0.5rem;
+    width: 100%;
+    transition: all 0.2s;
+}
+
+.offcanvas-title-input::placeholder {
+    color: var(--text-secondary) !important;
+    opacity: 0.8;
+}
+
+.offcanvas-title-input:hover {
+    border-color: var(--border-default);
+}
+
+.offcanvas-title-input:focus,
+.offcanvas-title-input.editing {
+    outline: none;
+    border-color: var(--border-hover);
+    background: #3a3a42;
+    color: var(--text-primary) !important;
+}
+
+.offcanvas-body {
+    font-size: 0.875rem;
+    background-color: #3d3d45;
+    border: none !important;
+}
+
+.offcanvas-body h6 {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.offcanvas-body .form-label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.offcanvas-body .form-control {
+    font-size: 0.875rem;
+    padding: 0.625rem 0.875rem;
+    background-color: #3a3a42 !important;
+    border: 1px solid var(--border-default) !important;
+    color: var(--text-primary) !important;
+}
+
+.offcanvas-body .form-control::placeholder {
+    color: var(--text-secondary) !important;
+    opacity: 0.8;
+}
+
+.offcanvas-body .form-control:focus {
+    background-color: #3a3a42 !important;
+    border-color: var(--border-hover) !important;
+    color: var(--text-primary) !important;
+}
+
+.service-tab-link {
+    font-size: 0.8125rem;
+    padding: 0.625rem 1rem;
+}
     border: 1px solid var(--gray-300);
     border-radius: 0;
     color: var(--black);
@@ -2540,7 +3018,7 @@ hideSidebar();
     font-weight: 500;
 }
 
-.tab-content {
+.main-content-area {
     color: var(--black);
     min-height: 400px;
     padding-top: 1rem;
@@ -2624,9 +3102,9 @@ hideSidebar();
 
 /* Offcanvas specific button styles */
 #service-offcanvas .btn-primary {
-    background-color: var(--black);
-    border-color: var(--black);
-    color: var(--white);
+    background-color: var(--accent-primary) !important;
+    border-color: var(--accent-primary) !important;
+    color: var(--bg-primary) !important;
     padding: 0.5rem 1rem;
     font-size: 0.875rem;
     font-weight: 500;
@@ -2635,9 +3113,9 @@ hideSidebar();
 }
 
 #service-offcanvas .btn-primary:hover {
-    background-color: var(--gray-900);
-    border-color: var(--gray-900);
-    color: var(--white);
+    background-color: var(--accent-hover) !important;
+    border-color: var(--accent-hover) !important;
+    color: var(--bg-primary) !important;
 }
 
 #service-offcanvas .btn-outline-secondary {
@@ -2731,6 +3209,37 @@ hideSidebar();
     position: relative;
 }
 
+/* Improve section contrast inside off-canvas */
+#service-offcanvas .settings-section-block {
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+#service-offcanvas .settings-section-block:last-child {
+    border-bottom: none;
+}
+
+#service-offcanvas .settings-section-block h5 {
+    color: var(--text-primary);
+}
+
+#service-offcanvas .settings-section-block h6 {
+    color: var(--text-primary);
+}
+
+#service-offcanvas .settings-section-icon {
+    color: var(--text-primary);
+}
+
+#service-offcanvas .settings-icon-wrapper {
+    background-color: #484850;
+    border-color: var(--border-default);
+}
+
+#service-offcanvas .settings-section-block:not(.last-section)::before {
+    background-color: var(--border-default);
+}
+
 /* Vertical line connecting icons - from bottom of icon to next icon */
 .settings-section-block:not(.last-section)::before {
     content: '';
@@ -2786,6 +3295,16 @@ hideSidebar();
     background-color: var(--gray-100);
 }
 
+/* Improve networking items contrast in off-canvas */
+#service-offcanvas .networking-item {
+    background-color: #45454d;
+    border-color: var(--border-default);
+}
+
+#service-offcanvas .networking-item:hover {
+    background-color: #484850;
+}
+
 @media (max-width: 768px) {
     .services-canvas {
         grid-template-columns: 1fr;
@@ -2805,5 +3324,311 @@ hideSidebar();
         padding-left: 0.5rem;
         padding-right: 0.5rem;
     }
+}
+
+/* Add Variable Form - Railway Style */
+.add-variable-form {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Improve variable form contrast in off-canvas */
+#service-offcanvas .add-variable-form {
+    background: #45454d;
+    border: 1px solid var(--border-default);
+}
+
+.variable-input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.variable-name-wrapper {
+    display: flex;
+    align-items: stretch;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-default);
+    overflow: hidden;
+    transition: border-color 0.2s;
+}
+
+.variable-name-wrapper:focus-within {
+    border-color: var(--border-hover);
+}
+
+.variable-name-input {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    padding: 0.625rem 0.875rem;
+    font-size: 0.8125rem;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+    flex: 1;
+    min-width: 0;
+}
+
+.variable-name-input::placeholder {
+    color: var(--text-tertiary);
+}
+
+.variable-name-input:focus {
+    outline: none;
+}
+
+.add-reference-btn {
+    background: var(--bg-elevated);
+    border: none;
+    border-left: 1px solid var(--border-default);
+    color: var(--text-secondary);
+    padding: 0 0.875rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.add-reference-btn:hover {
+    color: var(--text-primary);
+    background: var(--bg-tertiary);
+}
+
+/* Improve variable elements contrast in off-canvas */
+#service-offcanvas .variable-name-wrapper,
+#service-offcanvas .variable-value-wrapper {
+    background: #3a3a42;
+}
+
+#service-offcanvas .add-reference-btn,
+#service-offcanvas .variable-json-btn {
+    background: #45454d;
+    color: var(--text-primary);
+}
+
+#service-offcanvas .add-reference-btn:hover,
+#service-offcanvas .variable-json-btn:hover {
+    background: #484850;
+    color: var(--accent-primary);
+}
+
+.variable-value-wrapper {
+    display: flex;
+    align-items: stretch;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-default);
+    overflow: hidden;
+    transition: border-color 0.2s;
+}
+
+.variable-value-wrapper:focus-within {
+    border-color: var(--border-hover);
+}
+
+.variable-value-input {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    padding: 0.625rem 0.875rem;
+    font-size: 0.8125rem;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+    flex: 1;
+    min-width: 0;
+}
+
+.variable-value-input::placeholder {
+    color: var(--text-tertiary);
+}
+
+.variable-value-input:focus {
+    outline: none;
+}
+
+.variable-json-btn {
+    background: var(--bg-elevated);
+    border: none;
+    border-left: 1px solid var(--border-default);
+    color: var(--text-secondary);
+    padding: 0 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+}
+
+.variable-json-btn:hover {
+    color: var(--text-primary);
+    background: var(--bg-tertiary);
+}
+
+.variable-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-add-variable {
+    background: var(--accent-primary);
+    border: 1px solid var(--accent-primary);
+    color: var(--bg-primary);
+    padding: 0.625rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    width: 36px;
+    height: 36px;
+}
+
+.btn-add-variable:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+}
+
+.btn-cancel-variable {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-default);
+    color: var(--text-secondary);
+    padding: 0.625rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    width: 36px;
+    height: 36px;
+}
+
+.btn-cancel-variable:hover {
+    color: var(--text-primary);
+    border-color: var(--border-hover);
+}
+
+/* Improve cancel button contrast in off-canvas */
+#service-offcanvas .btn-cancel-variable {
+    background: #3a3a42;
+    color: var(--text-primary);
+}
+
+#service-offcanvas .btn-cancel-variable:hover {
+    background: #3d3d45;
+    color: var(--accent-primary);
+}
+
+/* Variables List */
+.no-variables-msg {
+    color: var(--gray-600);
+    font-size: 0.9375rem;
+}
+
+.variable-item {
+    display: flex;
+    align-items: center;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.variable-item:hover {
+    border-color: var(--border-default);
+}
+
+/* Improve variable items contrast in off-canvas */
+#service-offcanvas .variable-item {
+    background: #45454d;
+    border-color: var(--border-default);
+}
+
+#service-offcanvas .variable-item:hover {
+    background: #484850;
+    border-color: var(--border-hover);
+}
+
+#service-offcanvas .no-variables-msg {
+    color: var(--text-secondary);
+}
+
+.variable-item-key {
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-width: 150px;
+}
+
+.variable-item-value {
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+    color: var(--text-secondary);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.variable-item-actions {
+    display: flex;
+    gap: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.variable-item:hover .variable-item-actions {
+    opacity: 1;
+}
+
+.variable-item-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-tertiary);
+    padding: 0.25rem;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.variable-item-btn:hover {
+    color: var(--text-primary);
+}
+
+.variable-item-btn.delete:hover {
+    color: #ef4444;
+}
+
+/* Raw Editor */
+.raw-variables-textarea {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-default);
+    color: var(--text-primary);
+    font-size: 0.9375rem;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+}
+
+.raw-variables-textarea:focus {
+    background: var(--bg-tertiary);
+    border-color: var(--border-hover);
+    color: var(--text-primary);
+    box-shadow: none;
+    outline: none;
+}
+
+/* Improve raw editor contrast in off-canvas */
+#service-offcanvas .raw-variables-textarea {
+    background: #3a3a42;
+}
+
+#service-offcanvas .raw-variables-textarea:focus {
+    background: #3a3a42;
 }
 </style>

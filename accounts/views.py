@@ -253,7 +253,8 @@ def update_service(request):
             service.position_y = data['position'].get('y', service.position_y)
         if 'registry_username' in data:
             service.registry_username = data['registry_username']
-        if 'registry_password' in data:
+        # Only update password if provided (allows updating username without changing password)
+        if 'registry_password' in data and data['registry_password']:
             service.registry_password = data['registry_password']
         
         service.save()
